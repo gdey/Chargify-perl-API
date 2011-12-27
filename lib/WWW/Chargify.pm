@@ -1,33 +1,52 @@
 package WWW::Chargify;
+use version 0.77; $VERSION = version->declare('v0.0.1');
+use v5.10.0;
+use Data::Dumper;
+# ABSTRACT: wraper around Chargify.com's APIs.
+
 use Moose;
-use MooseX::Method::Signatures;
+use WWW::Chargify::Product;
+use WWW::Chargify::Config;
 
-use LWP;
-use HTTP::Request;
+with 'WWW::Chargify::Role::Config';
+with 'WWW::Chargify::Role::HTTP';
 
+=head SYNOPIS
 
-use namesapce::autoclean;
+  my $chargify = WWW::Chargify->new( config => WWW::Chargify::Config->new( apiKey => 'xxxxxx', subdomain => 'perl-chargify' ) );
+  my $chargify = WWW::Chargify->new( apiKey => 'xxxxx', subdomain => 'perl-chargify' );
+  
+=cut
+  
+  around BUILDARGS => sub {
+     my ($orig, $class, %args) = @_;
+     return $class->$orig( config => $args{config} ) if $args{config};
+     return $class->$orig( config => WWW::Chargify::Config->new( %args ) );
+     
+  };
 
-has apiKey => (
-        is => 'r', 
-       isa => 'Str',
-  required => 1,
-);
+=method products
 
-has apiPass => (
-         is => 'r',
-        isa => 'Str',
-   required => 1,
-    default => 'x',
-);
+   This methods returns the list of WWW::Chargify::Product objects.
 
-has subdomain => (
-           is => 'r',
-          isa => 'Str',
-      require => 1,
-);
+=cut 
+  sub products {
+      my $self = shift;
+      return WWW::Chargify::Product->list( $self->http );
+  }
 
+  sub find_product_by {
+      my $self = shift;
+      return WWW::Chargify::Product->find_by( $self->http, @_ );
+  }
 
+  sub product_families { return WWW::Chargify::ProductFamily->list( shift->http ); }
+
+  sub find_product_family_by_id {
+      my $self = shift;
+      my $id   = shift;
+      return WWW::Chargify::ProductFamily->find_by_id( $self->http, $id );
+  }
 
 1;
 __END__
@@ -69,6 +88,7 @@ Getting a compontent for a product family
 Creating a Compontent metered type
 
 
+   my $component = $chargify->metered_component(name => 'New Component",...);
    my $component = WWW::Chargify::Component::Type::Metered->new(
        config => $chargify->configuration,
        name => "New Component",
