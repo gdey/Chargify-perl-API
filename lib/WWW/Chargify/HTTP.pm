@@ -70,6 +70,17 @@ sub delete {
    $self->make_request( DELETE => $path);
 }
 
+sub check_response_code {
+
+	my ($self, $code) = @_;
+	confess "NotFoundError"       if $code eq '404';
+    confess "AuthenticationError" if $code eq '401';
+    confess "AuthorizationError"  if $code eq '403';
+    confess "ServerError"         if $code eq '500';
+    confess "DownForMaintenance"  if $code eq '503';
+
+}
+
 sub make_request {
    my ($self, $method, $path, $body) = @_;
 
@@ -87,7 +98,8 @@ sub make_request {
    }
 
    #TODO:  Need to handle errors here.
-
+   $self->check_response_code($response->code);
+  
 
    
    return wantarray? (undef,$response) : undef;

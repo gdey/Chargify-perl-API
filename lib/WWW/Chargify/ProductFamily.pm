@@ -35,11 +35,20 @@ has id => (
       required => 1,
 );
 
+sub _from_hash {
+
+	my ($class, $config, $http, %product_hash) = @_;
+	my %pruned = map { $_ => $product_hash{$_} } grep { defined $product_hash{$_}} keys %product_hash;
+	return $class->new(config => $config, http => $http, %pruned);
+}
+
 sub list {
    my ($class, $http) = @_;
    my ($product_families, $response) = $http->get('product_families');
    use Data::Dumper;
    say Dumper($product_families);
+   return map { $class->_from_hash($http->config, $http, %{$_->{product_family}} ) }
+   @{$product_families}
 }
 
 sub find_by_id {
@@ -48,14 +57,14 @@ sub find_by_id {
    my $product_family;
    my $response;
   
-#   $product_family = $http->get( product_families => $id );
-#   unless ( $product_family ) {
-#      say "No product_family --- args: ".Dumper(\%args,$response);
-#      return undef;
-#   }
-#   my %product_family = %{$product_family->{product_family}};
-#   my %p = map  { $_ =>  $product_family{$_} } grep { defined $product_family{$_} } keys %product_family;
-   return $class->new(config => $http->config, http => $http, %p);
+   use Data::Dumper;
+   
+   $product_family = $http->get( product_families => $id );
+   unless ( $product_family ) {
+      say "No product_family --- args: ".Dumper($id,$response);
+      return undef;
+   }
+   return $class->_from_hash(config => $http->config, http => $http, %{$product_family->{product_family}});
 }
 
 method products {
@@ -73,52 +82,52 @@ method products {
 
 }
 
-method components {
-   my ($components_json, $response) = $self->http->get(product_families => $self->id, 'components');
-   say 'Component: '.Dumper($components_json);
-}
+#method components {
+#   my ($components_json, $response) = $self->http->get(product_families => $self->id, 'components');
+#   say 'Component: '.Dumper($components_json);
+#}
+#
+#method find_component_by_id( Num $component_id ) {
+#   my ($component_json, $response) = 
+#       $self->http->get(product_families => $self->id, components => $component_id);
+#   say 'Component: '.Dumper($component_json);
+#}
 
-method find_component_by_id( Num $component_id ) {
-   my ($component_json, $response) = 
-       $self->http->get(product_families => $self->id, components => $component_id);
-   say 'Component: '.Dumper($component_json);
-}
-
-method create_metered_component( Str :$name, Str :$unit_name, Num :$unit_price, Str :$pricing_scheme, ArrayRef :$prices ) {
-
-   my ($component_json, $response) = 
-      $self->http->post( product_families => $self->id, metered_components => { 
-      
-      metered_component => {
-          name => $name,
-          unit_name => $unit_name,
-          pricing_scheme => $pricing_scheme,
-          prices => $prices
-      }
-
-      });
-}
-
-
-method create_quantity_based_components( Str :$name, Str :$unit_name, Num :$unit_price, Str :$pricing_scheme, ArrayRef :$prices ) {
-
-   my ($component_json, $response) = 
-      $self->http->post( product_families => $self->id, metered_components => { 
-      
-      metered_component => {
-          name => $name,
-          unit_name => $unit_name,
-          pricing_scheme => $pricing_scheme,
-          prices => $prices
-      }
-
-      });
-}
-
-method create_on_off_component( Str :$name, Str :$unit_name, Num :$unit_price ) {
-
-}
-
+#method create_metered_component( Str :$name, Str :$unit_name, Num :$unit_price, Str :$pricing_scheme, ArrayRef :$prices ) {
+#
+#   my ($component_json, $response) = 
+#      $self->http->post( product_families => $self->id, metered_components => { 
+#      
+#      metered_component => {
+#          name => $name,
+#          unit_name => $unit_name,
+#          pricing_scheme => $pricing_scheme,
+#          prices => $prices
+#      }
+#
+#      });
+#}
+#
+#
+#method create_quantity_based_components( Str :$name, Str :$unit_name, Num :$unit_price, Str :$pricing_scheme, ArrayRef :$prices ) {
+#
+#   my ($component_json, $response) = 
+#      $self->http->post( product_families => $self->id, metered_components => { 
+#      
+#      metered_component => {
+#          name => $name,
+#          unit_name => $unit_name,
+#          pricing_scheme => $pricing_scheme,
+#          prices => $prices
+#      }
+#
+#      });
+#}
+#
+#method create_on_off_component( Str :$name, Str :$unit_name, Num :$unit_price ) {
+#
+#}
+#
 
 1;
 
