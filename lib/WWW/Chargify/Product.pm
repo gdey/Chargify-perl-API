@@ -11,6 +11,7 @@ use DateTime::Format::W3CDTF;
 
 with 'WWW::Chargify::Role::Config';
 with 'WWW::Chargify::Role::HTTP';
+with 'WWW::Chargify::Role::FromHash';
 
     
 has product_family  => ( is => 'ro', isa => 'WWW::Chargify::ProductFamily', required => 1 );

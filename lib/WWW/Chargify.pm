@@ -7,7 +7,7 @@ use Data::Dumper;
 use Moose;
 use WWW::Chargify::Product;
 use WWW::Chargify::Config;
-
+use namespace::autoclean;
 with 'WWW::Chargify::Role::Config';
 with 'WWW::Chargify::Role::HTTP';
 
@@ -41,6 +41,13 @@ with 'WWW::Chargify::Role::HTTP';
   }
 
   sub product_families { return WWW::Chargify::ProductFamily->list( shift->http ); }
+
+#
+#  I want to change this to:
+#
+#   $chargify->find( ProductFamily => ( id => $id ) );
+#   $chargify->find( Product => ( id => $id ) );
+#   $chargify->find( Product => ( handle => $handle ) );
 
   sub find_product_family_by_id {
       my $self = shift;
