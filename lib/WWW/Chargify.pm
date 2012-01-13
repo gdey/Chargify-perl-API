@@ -37,10 +37,12 @@ with 'WWW::Chargify::Role::HTTP';
 
   sub find_product_by {
       my $self = shift;
+      my %args = @_;
       return WWW::Chargify::Product->find_by( $self->http, @_ );
+
   }
 
-  sub product_families { return WWW::Chargify::ProductFamily->list( shift->http ); }
+  sub product_families { return WWW::Chargify::ProductFamily->list( http => shift->http ); }
 
 #
 #  I want to change this to:
@@ -52,7 +54,7 @@ with 'WWW::Chargify::Role::HTTP';
   sub find_product_family_by_id {
       my $self = shift;
       my $id   = shift;
-      return WWW::Chargify::ProductFamily->find_by_id( $self->http, $id );
+      return WWW::Chargify::ProductFamily->find_by_id( http => $self->http, id => $id );
   }
 
 1;

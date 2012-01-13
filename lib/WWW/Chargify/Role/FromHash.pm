@@ -1,5 +1,6 @@
 use Modern::Perl;
 use MooseX::Declare;
+use WWW::Chargify::Utils::DateTime;
 
 role WWW::Chargify::Role::FromHash{
 

@@ -46,7 +46,7 @@ method list ( $class: WWW::Chargify::HTTP :$http ) {
    @{$product_families}
 }
 
-method find_by_id ($class: WWW::Chargify::HTTP $http, Num $id) {
+method find_by_id ($class: WWW::Chargify::HTTP :$http, Num :$id) {
    my $config = $http->config;
    my ($product_family, $response) = $http->get( product_families => $id );
    unless ( $product_family ) {
