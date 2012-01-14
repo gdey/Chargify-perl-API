@@ -96,7 +96,7 @@ sub make_request {
    );
 
    say 'Body: '.Dumper($body);
-   $self->set_body($request, $body);
+   $self->set_body( request => $request, body => $body);
    my $response = $self->userAgent->request($request);
    if ( $response->is_success ) {
        my $value = decode_json($response->decoded_content);

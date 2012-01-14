@@ -141,19 +141,21 @@ method create_on_off_component( Str :$name, Str :$unit_name, Num :$unit_price ) 
 }
 
 
-method create_precentage_coupon ( 
-    Str :$name, 
-    Str :$code, 
-    Str :$description, 
-    Num :$percentage, 
-    Bool :$allow_negative_balance, 
-    Bool :$recurring, 
-    Num  :$coupon_duration_period_count,
-    DateTime :$coupon_end_date ) {
-
+method create_precentage_coupon 
+  ( 
+   Str :$name, 
+   Str :$code, 
+   Str :$description, 
+   Num :$percentage, 
+   Bool :$allow_negative_balance, 
+   Bool :$recurring, 
+   Num  :$coupon_duration_period_count,
+   DateTime :$coupon_end_date 
+  ) {
+    
   return 1; 
 
-};
+}
 
 }
 
