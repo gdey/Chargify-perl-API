@@ -43,9 +43,29 @@ sub set_body {
 
 }
 
+sub filter_string {
+   my ($self, $hash_ref) = @_;
+
+   foreach my $key ( keys %{$hash_ref} ){
+      my @filter = ();
+      my $value = $hash_ref->{$key};
+      unless ( ref($value) )  {
+         push @filter, $key.'='.$value;
+         next; 
+      }
+      if( ref($value) eq 'ARRAY' ){
+         push @filter, map {$key.'[]='.$_} @{$value};
+         next;
+      } 
+
+      # We skip other types of things.
+   }
+
+   return join '&', @filter;
+}
+
 sub post {
-   my ($self, @path) = @_;
-   my $body = pop @path;
+   my ($self, $body, @path) = @_;
    my $path = join '/',@path;
 
    say 'Body: '.Dumper($body);
@@ -53,8 +73,7 @@ sub post {
    $self->make_request( POST => $path, $body // "{}");
 }
 sub put {
-   my ($self, @path) = @_;
-   my $body = pop @path;
+   my ($self, $body, @path) = @_;
    my $path = join '/',@path;
    $self->make_request( PUT => $path, $body // "{}");
 }
@@ -76,18 +95,20 @@ sub delete {
 
 sub check_response_code {
 
-	my ($self, $code) = @_;
-	  confess "NotFoundError"       if $code eq '404';
-    confess "AuthenticationError" if $code eq '401';
-    confess "AuthorizationError"  if $code eq '403';
-    confess "ServerError"         if $code eq '500';
-    confess "DownForMaintenance"  if $code eq '503';
+	my ($self, $response) = @_;
+  my $code = $response->code;
+	confess 'NotFoundError'       if $code eq '404';
+	confess 'UnprocessableEntity: '.$response->decoded_content if $code eq '422';
+  confess 'AuthenticationError' if $code eq '401';
+  confess 'AuthorizationError'  if $code eq '403';
+  confess 'ServerError'         if $code eq '500';
+  confess 'DownForMaintenance'  if $code eq '503';
 
 }
 
 sub make_request {
-   my ($self, $method, $path, $body) = @_;
 
+   my ($self, $method, $path, $body) = @_;
 
    my $base_url = $self->config->base_url($path);
    my $request = HTTP::Request->new( $method => $base_url );
@@ -96,7 +117,7 @@ sub make_request {
    );
 
    say 'Body: '.Dumper($body);
-   $self->set_body($request, $body);
+   $self->set_body(request => $request, body => $body);
    my $response = $self->userAgent->request($request);
    if ( $response->is_success ) {
        my $value = decode_json($response->decoded_content);
@@ -104,10 +125,7 @@ sub make_request {
    }
 
    #TODO:  Need to handle errors here.
-   $self->check_response_code($response->code);
-  
-
-   
+   $self->check_response_code($response);
    return wantarray? (undef,$response) : undef;
 } 
 
