@@ -49,7 +49,7 @@ class WWW::Chargify::Product {
                     WWW::Chargify::HTTP :$http, HashRef :$hash, HashRef :$overrides = {} ){
 
           my $product_family_hash = $hash->{product_family};
-          if( $product_family_hash ){
+          if( $product_family_hash and ref($product_family_hash) eq 'HASH'){
             my $pf_id = $product_family_hash->{id};
 
             if( exists $product_families{$pf_id} ){
@@ -61,6 +61,7 @@ class WWW::Chargify::Product {
                       hash => $hash,
                  overrides => $overrides
                );
+               $product_family_hash{$pf_id} = $hash->{product_family};
             }
           };
          return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );

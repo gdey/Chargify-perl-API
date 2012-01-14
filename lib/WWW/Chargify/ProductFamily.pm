@@ -6,78 +6,60 @@ use WWW::Chargify::Component;
 
 class WWW::Chargify::ProductFamily {
 
-with 'WWW::Chargify::Role::Config';
-with 'WWW::Chargify::Role::HTTP';
-with 'WWW::Chargify::Role::FromHash';
+   with 'WWW::Chargify::Role::Config';
+   with 'WWW::Chargify::Role::HTTP';
+   with 'WWW::Chargify::Role::FromHash';
+   with 'WWW::Chargify::Role::List'; 
+   with 'WWW::Chargify::Role::Find';
 
-has name => (
-         is => 'ro',
-        isa => 'Str',
-   required => 1,
-);
-
-has handle => (
-        is => 'ro',
-       isa => 'Str',
-  required => 1,
-);
-
-has description => (
-        is => 'ro',
-       isa => 'Str',
-);
-
-has accounting_code => (
-        is => 'ro',
-       isa => 'Str',
-);
-
-has id => (
-        is => 'ro',
-      isa => 'Num',
+    has name => (
+             is => 'ro',
+            isa => 'Str',
+       required => 1,
+    );
+    
+    has handle => (
+            is => 'ro',
+           isa => 'Str',
       required => 1,
-);
+    );
+    
+    has description => (
+            is => 'ro',
+           isa => 'Str',
+    );
+    
+    has accounting_code => (
+            is => 'ro',
+           isa => 'Str',
+    );
+    
+    has id => (
+            is => 'ro',
+          isa => 'Num',
+          required => 1,
+    );
 
-method list ( $class: WWW::Chargify::HTTP :$http ) {
-   my $config = $http->config;
-   my ($product_families, $response) = $http->get('product_families');
+
+   sub _hash_key     { 'product_family' };
+   sub _resource_key { 'product_families' };
+
+   method products {
    
-   return map { $class->_from_hash( config => $config, http => $http, hash => $_->{product_family} ) }
-   @{$product_families}
-}
-
-method find_by_id ($class: WWW::Chargify::HTTP :$http, Num :$id) {
-   my $config = $http->config;
-   my ($product_family, $response) = $http->get( product_families => $id );
-   unless ( $product_family ) {
-      use Data::Dumper;
-      say "No product_family --- args: ".Dumper($id,$response);
-      return undef;
+      my ($config, $http) = ($self->config, $self->http);
+      my ($products, $response) = $self->http->get(product_families => $self->id, 'products');
+   
+      return map {
+             WWW::Chargify::Prouduct->_from_hash(
+                 http => $http,
+                 config => $config,
+                 hash => $_ ,
+                 overrides => {
+                     $self->_hash_key => $self
+                 });
+      } @$products;
+   
    }
-   return $class->_from_hash( config => $config, http => $http, hash => $product_family->{product_family} );
-}
-
-method products {
-
-   my ($config, $http) = ($self->config, $self->http);
-   my ($product_json, $response) = $self->http->get(product_families => $self->id, 'products');
-
-   return map {
-          my $product = $_->{product};
-          #WWW::Chargify::Product->_from_hash(
-          #   config => $config,
-          #   http => $http,
-          #   hash => $product,
-          #   overrides => { product_family => $self }
-          #);
-          WWW::Chargify::Product->__product_with_json_hash( 
-             http => $http, 
-             config => $config, 
-             product_json => $product, 
-             product_family => $self );
-   } @$product_json;
-
-}
 
 method components {
    my ($config, $http) = ($self->config, $self->http);
@@ -113,7 +95,7 @@ method create_metered_component( Str :$name, Str :$unit_name, Num :$unit_price, 
 }
 
 
-method create_quantity_based_components( Str :$name, Str :$unit_name, Num :$unit_price, Str :$pricing_scheme, ArrayRef :$prices ) {
+method create_quantity_based_component( Str :$name, Str :$unit_name, Num :$unit_price, Str :$pricing_scheme, ArrayRef :$prices ) {
 
    my ($component_json, $response) = 
       $self->http->post( product_families => $self->id, quantity_based_components => { 
