@@ -13,7 +13,7 @@ class WWW::Chargify::Subscription {
    with 'WWW::Chargify::Role::List'; 
    with 'WWW::Chargify::Role::Find';
    
-   has id => ( is => 'ro', isa => 'Num');
+   has id => ( is => 'ro', isa => 'Num', traits => [qw[Chargify::APIAttribute]]);
    has state => ( is => 'ro', isa => 'Str');
    has balance_in_cents => ( is => 'ro', isa => 'Num');
    has current_period_started_at => ( 
