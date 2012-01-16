@@ -7,11 +7,15 @@ role WWW::Chargify::Role::List {
    requires '_hash_key';
    requires '_resource_key';
 
-   method list ( $class: WWW::Chargify::HTTP :$http ) {
+   method list ( $class: WWW::Chargify::HTTP :$http, HashRef :$options? ) {
 
       my $config = $http->config;
       my $hash_key = $class->_hash_key;
       my $resource_key = $class->_resource_key;
+
+      $resource_key .='?'.$http->filter_string($options) if $options;
+
+      say "Resource key: $resource_key";
       my ($objects, $response) = $http->get($resource_key);
 
       use Data::Dumper; 
