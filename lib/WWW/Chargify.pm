@@ -57,6 +57,14 @@ with 'WWW::Chargify::Role::HTTP';
       return WWW::Chargify::ProductFamily->find_by_id( http => $self->http, id => $id );
   }
 
+  sub getCustomer {
+      my $self = shift;
+      return WWW::Chargify::Customer->new(
+                                          config => $self->config(),
+                                         )
+        
+  }
+ 
 1;
 __END__
 
