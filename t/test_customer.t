@@ -1,4 +1,5 @@
-#!/usr/bin/perl-completion-mode doesn't use own key-map.
+#!/usr/bin/perl
+#-completion-mode doesn't use own key-map.
 
 
 use strict;
@@ -43,5 +44,6 @@ $cust->phone("8585551212");
 $cust->state("CA");
 $cust->zip("92104");
 
-#$cust->save();
+# This will update the customer.
+$cust->save();
 

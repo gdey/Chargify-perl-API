@@ -75,7 +75,8 @@ sub post {
    $self->make_request( POST => $path, $body // "{}");
 }
 sub put {
-   my ($self, $body, @path) = @_;
+   my ($self, @path) = @_;
+   my $body = pop @path;
    my $path = join '/',@path;
    $self->make_request( PUT => $path, $body // "{}");
 }

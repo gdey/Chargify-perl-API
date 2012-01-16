@@ -93,10 +93,10 @@ class WWW::Chargify::Customer {
        print "Save called!\n";
 
        my $hash = $self->_to_hash_for_new_update();
-          print Dumper( $hash );
+       print Dumper( $hash );
        # if there is an id, we need to put, otherwise we need to post.
        if( $self->has_id ){
-          my $res_hash =  $self->http->put( $self->_resource_key, $self->id, { $self->_hash_key => $hash } );
+          my ($res_hash, $response) =  $self->http->put( $self->_resource_key, $self->id, { $self->_hash_key => $hash } );
           print Dumper( $res_hash );
           
        } else {
