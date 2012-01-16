@@ -41,6 +41,7 @@ class WWW::Chargify::Customer {
 
 
    # Address Information. Did not see this in the API docs.
+   # This will set the shipping address information for the user.
 
    has 'address'      => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
    has 'address_2'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
@@ -53,84 +54,34 @@ class WWW::Chargify::Customer {
    sub _hash_key     { 'customer' };
    sub _resource_key { 'customers' };
 
-   #{
-   #   our %customer_families = ();
-   #   around _from_hash( $class: WWW::Chargify::Config :$config, 
-   #                 WWW::Chargify::HTTP :$http, HashRef :$hash, HashRef :$overrides = {} ){
-
-   #       my $customer_family_hash = $hash->{customer_family};
-   #       if( $customer_family_hash ){
-   #         my $pf_id = $customer_family_hash->{id};
-
-   #         if( exists $customer_families{$pf_id} ){
-   #            $hash->{customer_family} = $customer_families{$pf_id};
-   #         } else {
-   #            $hash->{customer_family} = WWW::Chargify::CustomerFamily->_from_hash(
-   #                 config => $config,
-   #                   http => $http,
-   #                   hash => $hash,
-   #              overrides => $overrides
-   #            );
-   #         }
-   #       };
-   #      return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );
-   #   }
-   #}
-   #
-   #sub find_by {
-   #   
-   #   my ($class, $http, %args) = @_;
-   #   return $class->_find_by(http => $http, params => [ $args{id} ]) 
-   #          if( exists $args{id} );
-   #   return $class->_find_by(http => $http, params => [ handle => $args{handle} ]) 
-   #          if( exists $args{handle} );
-   #   return undef;
-   #}
-
-   sub save {
-       my ($self,%args) = @_;
-
-       print "Save called!\n";
-
-       my $hash = $self->_to_hash_for_new_update();
-       print Dumper( $hash );
-       # if there is an id, we need to put, otherwise we need to post.
-       if( $self->has_id ){
-          my ($res_hash, $response) =  $self->http->put( $self->_resource_key, $self->id, { $self->_hash_key => $hash } );
-          print Dumper( $res_hash );
-          
-       } else {
-       #$DB::signal = 1;
-          my ($res_hash, $response) = $self->http->post( $self->_resource_key, { $self->_hash_key => $hash } );
-          print "Repsonse Body: ".Dumper( $res_hash );
-
-          foreach my $key ( keys %{$res_hash->{customer}} ){
-             $self->$key($res_hash->{customer}->{$key}) if $res_hash->{customer}->{$key};
-          }
-          
-       }
-       #$DB::signal = 1;
-       print "";
+   method find_by_reference($class: WWW::Chargify::HTTP :$http, Str :$reference ){
+        my $config = $http->config;
+        return $class->_find_by($http => $http, params => [ reference => $reference ] ); 
    }
 
-   # sub _to_hash {
-   #     my ($self) = @_;
-   #     return { 
-   #             $self->_hash_key =>
-   #             { 
-   #              address      => $self->address,
-   #              address_2    => $self->address_2,
-   #              city         => $self->city,
-   #              country      => $self->country,
-   #              email        => $self->email,
-   #              first_name   => $self->first_name,
-   #              last_name    => $self->last_name,
-   #              organization => $self->organization,
-   #              phone        => $self->phone,
-   #              reference    => $self->reference,
-   #              state        => $self->state,
-   #              zip          => $self->zip,
-   #             }
-   #            };
-   # }
+   method find_by_query( $class: WWW::Chargify::HTTP :$http, Str :$query ){
+
+      my $options = { q => $query, commit => 'Search' };
+      my @customers =  $class->list( http => $http, options => $options );
+
+      return wantarray? @customers : \@customers;
+
+   }
+
+   method save {
+
+       my $hash = $self->_to_hash_for_new_update();
+       my ($res_hash, $response) = $self->has_id ? $self->http->put(  $self->_resource_key, $self->id, { $self->_hash_key => $hash } )
+                                                 : $self->http->post( $self->_resource_key,            { $self->_hash_key => $hash } );
+       # if there is an id, we need to put, otherwise we need to post.
+       if ( $res_hash and $res_hash->{ $self->_hash_key } ){
+          my %rhash = %{$res_hash->{ $self->_hash_key }};
+          foreach my $key ( keys %rhash ){
+             $self->$key($rhash{$key}) if $rhash{$key};
+          }
+       }
+   }
+
+
+
 }

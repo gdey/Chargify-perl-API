@@ -34,6 +34,6 @@ use Moose;
 
    sub base_url {
       my ($self, $path ) = @_;
-      return $self->protocal.'://'.$self->subdomain.'.'.$self->chargify_url.'/'.$path.'.json';
+      return $self->protocal.'://'.$self->subdomain.'.'.$self->chargify_url.'/'.$path;
    }
 1;

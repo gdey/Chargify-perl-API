@@ -38,10 +38,10 @@ sub set_body {
 
    print "Body: $body\n";
 
+   $request->headers->content_type('application/json; charset=utf-8');
    return unless $body;
    my $json = encode_json $body;
    $request->content($json);
-   $request->headers->content_type('Application/json; charset=utf-8');
 
 }
 
@@ -115,14 +115,17 @@ sub make_request {
 
    my $base_url = $self->config->base_url($path);
    my $request = HTTP::Request->new( $method => $base_url );
+   $request->header(Accept => 'application/json');
    $request->headers->authorization_basic(
       $self->config->apiKey,$self->config->apiPass
    );
+   say "Doing: $method => $base_url";
 
-   say 'Body: '.Dumper($body);
+   say 'Body: '.Dumper($body) if $body;
    $self->set_body( request => $request, body => $body );
    my $response = $self->userAgent->request($request);
    if ( $response->is_success ) {
+       say 'got back: '.$response->decoded_content;
        my $value = decode_json($response->decoded_content);
        return wantarray? ($value,$response) : $value;
    }

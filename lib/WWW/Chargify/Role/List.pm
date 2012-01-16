@@ -18,9 +18,9 @@ role WWW::Chargify::Role::List {
       say "Resource key: $resource_key";
       my ($objects, $response) = $http->get($resource_key);
 
-      use Data::Dumper; 
-      say 'Object List: '.Dumper($objects);
-      
+      use Data::Dumper;
+      say 'Body is:'.Dumper( $objects );
+
       return map { $class->_from_hash( config => $config, http => $http, hash => $_->{$hash_key} ) }
       @{$objects};
 

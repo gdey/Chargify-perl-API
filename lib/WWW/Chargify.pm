@@ -57,17 +57,27 @@ with 'WWW::Chargify::Role::HTTP';
       return WWW::Chargify::ProductFamily->find_by_id( http => $self->http, id => $id );
   }
 
-  sub getCustomer {
+  sub find_customer_by_id {
       my $self = shift;
-      return WWW::Chargify::Customer->new(
-                                          config => $self->config(),
-                                         )
-        
+      my $id = shift;
+      return WWW::Chargify::Customer->find_by_id( http => $self->http, id => $id );
+  }
+
+  sub find_customer_by_reference {
+      my $self = shift;
+      my $reference = shift;
+      return WWW::Chargify::Customer->find_by_reference( http => $self->http, reference => $reference );
+  }
+
+  sub find_customer_by_query {
+      my $self = shift;
+      my $query = shift;
+      return WWW::Chargify::Customer->find_by_query( http => $self->http, query => $query );
   }
 
   sub newCustomer {
       my $self = shift;
-      return WWW::Chargify::Customer->new( config => $self->config, @_ );
+      return WWW::Chargify::Customer->new( config => $self->config, http => $self->http, @_ );
   }
  
 1;
