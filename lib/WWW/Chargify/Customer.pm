@@ -4,6 +4,8 @@ BEGIN {
     use MooseX::Types;
     use WWW::Chargify::Config;
     use WWW::Chargify::HTTP;
+    use 5.10.0;
+    use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 #    use DateTime;#
 #    class_type 'DateTime';
 };
@@ -34,6 +36,7 @@ class WWW::Chargify::Customer {
             is => 'rw' , 
             isa => 'DateTime' , 
             isAPIUpdatable => 0,
+            coerce => 1,
    );
 
 
@@ -50,51 +53,61 @@ class WWW::Chargify::Customer {
    sub _hash_key     { 'customer' };
    sub _resource_key { 'customers' };
 
-   {
-      our %customer_families = ();
-      around _from_hash( $class: WWW::Chargify::Config :$config, 
-                    WWW::Chargify::HTTP :$http, HashRef :$hash, HashRef :$overrides = {} ){
+   #{
+   #   our %customer_families = ();
+   #   around _from_hash( $class: WWW::Chargify::Config :$config, 
+   #                 WWW::Chargify::HTTP :$http, HashRef :$hash, HashRef :$overrides = {} ){
 
-          my $customer_family_hash = $hash->{customer_family};
-          if( $customer_family_hash ){
-            my $pf_id = $customer_family_hash->{id};
+   #       my $customer_family_hash = $hash->{customer_family};
+   #       if( $customer_family_hash ){
+   #         my $pf_id = $customer_family_hash->{id};
 
-            if( exists $customer_families{$pf_id} ){
-               $hash->{customer_family} = $customer_families{$pf_id};
-            } else {
-               $hash->{customer_family} = WWW::Chargify::CustomerFamily->_from_hash(
-                    config => $config,
-                      http => $http,
-                      hash => $hash,
-                 overrides => $overrides
-               );
-            }
-          };
-         return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );
-      }
-   }
-   
-   sub find_by {
-      
-      my ($class, $http, %args) = @_;
-      return $class->_find_by(http => $http, params => [ $args{id} ]) 
-             if( exists $args{id} );
-      return $class->_find_by(http => $http, params => [ handle => $args{handle} ]) 
-             if( exists $args{handle} );
-      return undef;
-   }
+   #         if( exists $customer_families{$pf_id} ){
+   #            $hash->{customer_family} = $customer_families{$pf_id};
+   #         } else {
+   #            $hash->{customer_family} = WWW::Chargify::CustomerFamily->_from_hash(
+   #                 config => $config,
+   #                   http => $http,
+   #                   hash => $hash,
+   #              overrides => $overrides
+   #            );
+   #         }
+   #       };
+   #      return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );
+   #   }
+   #}
+   #
+   #sub find_by {
+   #   
+   #   my ($class, $http, %args) = @_;
+   #   return $class->_find_by(http => $http, params => [ $args{id} ]) 
+   #          if( exists $args{id} );
+   #   return $class->_find_by(http => $http, params => [ handle => $args{handle} ]) 
+   #          if( exists $args{handle} );
+   #   return undef;
+   #}
 
    sub save {
        my ($self,%args) = @_;
 
+       print "Save called!\n";
+
        my $hash = $self->_to_hash_for_new_update();
+          print Dumper( $hash );
        # if there is an id, we need to put, otherwise we need to post.
        if( $self->has_id ){
-          my $res_hash = $self->http->put( $self->_resource_key, $self->id, { $self->_hash_key => $hash } );
+          my $res_hash =  $self->http->put( $self->_resource_key, $self->id, { $self->_hash_key => $hash } );
+          print Dumper( $res_hash );
           
        } else {
-          my $res_hash =  $self->http->post( $self->_resource_key, $self->_to_hash() );
-          say Dumper( $res_hash );
+       #$DB::signal = 1;
+          my ($res_hash, $response) = $self->http->post( $self->_resource_key, { $self->_hash_key => $hash } );
+          print "Repsonse Body: ".Dumper( $res_hash );
+
+          foreach my $key ( keys %{$res_hash->{customer}} ){
+             $self->$key($res_hash->{customer}->{$key}) if $res_hash->{customer}->{$key};
+          }
+          
        }
        #$DB::signal = 1;
        print "";

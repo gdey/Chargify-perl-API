@@ -36,6 +36,8 @@ sub set_body {
    my $request = $args{request};
    my $body = $args{body};
 
+   print "Body: $body\n";
+
    return unless $body;
    my $json = encode_json $body;
    $request->content($json);
@@ -63,8 +65,10 @@ sub filter_string {
 }
 
 sub post {
-   my ($self, $body, @path) = @_;
-   my $path = join '/',@path;
+   my ($self, @path) = @_;
+   my $body = pop @path;
+   say 'Path : '.Dumper(\@path);
+   my $path = join '/', @path;
 
    say 'Body: '.Dumper($body);
 

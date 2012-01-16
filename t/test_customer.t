@@ -3,7 +3,9 @@
 
 use strict;
 use Moose;
+use 5.10.0;
 
+use lib './lib';
 
 use Test::More tests => 4;
 my $chargify;
@@ -26,7 +28,9 @@ $chargify = WWW::Chargify->new(  subdomain  => $ENV{SUBDOMAIN},
 # add the Product
 
 
-$cust =  $chargify->newCustomer( first_name => 'Joe', last_name => 'Plummer', email => 'joeplummer@pipecleaning.com', reference => 'jplummer' );
+my $rand = rand();
+print "rand seed is : $rand\n";
+$cust =  $chargify->newCustomer( first_name => 'Joe'.$rand, last_name => 'Plummer', email => 'joeplummer@pipecleaning.com', reference => 'jplummer'.$rand );
 
 $cust->save();
 
@@ -39,5 +43,5 @@ $cust->phone("8585551212");
 $cust->state("CA");
 $cust->zip("92104");
 
-$cust->save();
+#$cust->save();
 

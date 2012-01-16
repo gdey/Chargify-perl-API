@@ -64,6 +64,11 @@ with 'WWW::Chargify::Role::HTTP';
                                          )
         
   }
+
+  sub newCustomer {
+      my $self = shift;
+      return WWW::Chargify::Customer->new( config => $self->config, @_ );
+  }
  
 1;
 __END__

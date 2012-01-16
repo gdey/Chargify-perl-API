@@ -51,7 +51,9 @@ method _to_hash( Bool :$excludeReadOnly=0 ) {
 
          next if ( $excludeReadOnly and !$attribute->isAPIUpdatable );
          my $reader = $attribute->get_read_method;
-         $hash{$key} = $self->$reader;
+         my $value = $self->$reader;
+         next unless $value;
+         $hash{$key} = $value;
       }
    }
    return wantarray ? %hash : \%hash;
