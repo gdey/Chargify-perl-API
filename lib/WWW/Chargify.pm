@@ -1,5 +1,5 @@
 package WWW::Chargify;
-use version 0.77; $VERSION = version->declare('v0.0.1');
+#use version 0.77; $VERSION = version->declare('v0.0.1');
 use v5.10.0;
 use Data::Dumper;
 # ABSTRACT: wraper around Chargify.com's APIs.

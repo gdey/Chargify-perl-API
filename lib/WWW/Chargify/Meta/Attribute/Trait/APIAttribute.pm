@@ -1,13 +1,28 @@
 package WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 use Moose::Role;
  
-has label => (
+has isAPIAttribute => (
     is        => 'rw',
-    isa       => 'Str',
-    predicate => 'has_label',
+    isa       => 'Bool',
+    default   => 1,
 );
 
+has APIAttributeName => (
+   is  => 'rw',
+   isa => 'Str',
+   predicate => 'has_APIAttributeName',
+);
+
+has isAPIUpdatable => (
+   is => 'rw',
+   isa => 'Bool',
+   default => 1,
+);
+
+
+
 package Moose::Meta::Attribute::Custom::Trait::Chargify::APIAttribute;
-sub register_implementation {'WWW::Chargify::Meta::Attribute::Trait::APIAttribute'}
+
+sub register_implementation {'WWW::Chargify::Meta::Attribute::Trait::APIAttribute'};
 
 1;

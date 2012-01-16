@@ -98,28 +98,28 @@ method create_metered_component( Str :$name, Str :$unit_name, Num :$unit_price, 
 method create_quantity_based_component( Str :$name, Str :$unit_name, Num :$unit_price, Str :$pricing_scheme, ArrayRef :$prices ) {
 
    my ($component_json, $response) = 
-      $self->http->post( product_families => $self->id, quantity_based_components => { 
+      $self->http->post( product_families => $self->id, 
       
       quantity_based_component => {
-          name => $name,
-          unit_name => $unit_name,
+          name           => $name,
+          unit_name      => $unit_name,
           pricing_scheme => $pricing_scheme,
-          prices => $prices,
-          unit_price => $unit_price
+          prices         => $prices,
+          unit_price     => $unit_price
       }
 
-      });
+   );
 }
 
 method create_on_off_component( Str :$name, Str :$unit_name, Num :$unit_price ) {
 
-    my ($component_json, $response) = 
-        $self->http->post( product_families => $self->id, on_off_components => {
-               Name => $name,
-               unit_name => $unit_name,
-               unit_price => $unit_price,
-               Price => $unit_price,
-        });
+   my ($component_json, $response) = 
+      $self->http->post( product_families => $self->id, on_off_components => {
+          name       => $name,
+          unit_name  => $unit_name,
+          unit_price => $unit_price,
+          price      => $unit_price,
+   });
 }
 
 

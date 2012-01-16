@@ -46,8 +46,8 @@ sub set_body {
 sub filter_string {
    my ($self, $hash_ref) = @_;
 
+   my @filter = ();
    foreach my $key ( keys %{$hash_ref} ){
-      my @filter = ();
       my $value = $hash_ref->{$key};
       unless ( ref($value) )  {
          push @filter, $key.'='.$value;
@@ -57,8 +57,6 @@ sub filter_string {
          push @filter, map {$key.'[]='.$_} @{$value};
          next;
       } 
-
-      # We skip other types of things.
    }
 
    return join '&', @filter;

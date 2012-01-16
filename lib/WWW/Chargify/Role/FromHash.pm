@@ -26,5 +26,36 @@ use Data::Dumper;
 	
 };
 
+method _to_hash_for_new_update() { return $self->_to_hash( excludeReadOnly => 1 ) }
+
+method _to_hash( Bool :$excludeReadOnly=0 ) {
+
+   return unless defined wantarray;
+
+   my $meta = $self->meta;
+   my %hash = ();
+   foreach my $attribute ( map { $meta->get_attribute($_) } sort $meta->get_attribute_list ) { 
+    
+      next unless ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
+         and $attribute->isAPIAttribute ); 
+
+      if ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
+         and $attribute->isAPIAttribute ) {
+
+         my $key;
+         if( $attribute->has_APIAttributeName ){
+            $key = $attribute->APIAttributeName;
+         } else {
+            $key = $attribute->name;
+         };
+
+         next if ( $excludeReadOnly and !$attribute->isAPIUpdatable );
+         my $reader = $attribute->get_read_method;
+         $hash{$key} = $self->$reader;
+      }
+   }
+   return wantarray ? %hash : \%hash;
+}
+
 }
 

@@ -1,6 +1,7 @@
 use Modern::Perl;
 use MooseX::Declare;
 use WWW::Chargify::CreditCard;
+use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
 class WWW::Chargify::Subscription {
 
@@ -14,7 +15,7 @@ class WWW::Chargify::Subscription {
    with 'WWW::Chargify::Role::Find';
    
    has id => ( is => 'ro', isa => 'Num', traits => [qw[Chargify::APIAttribute]]);
-   has state => ( is => 'ro', isa => 'Str');
+   has state => ( is => 'ro', isa => 'Str', traits => [qw[Chargify::APIAttribute]] );
    has balance_in_cents => ( is => 'ro', isa => 'Num');
    has current_period_started_at => ( 
               is => 'ro', 
@@ -39,7 +40,7 @@ class WWW::Chargify::Subscription {
    has updated_at => (is => 'ro', isa => 'DateTime', coerce => 1, );
    has canceled_at  => ( is => 'ro', isa => 'DateTime', coerce => 1, );
    has delayed_cancel_at         =>  ( is => 'ro', isa => 'DateTime', coerce => 1, );
-   #has customer => ( is => 'ro', isa => 'WWW::Chargify::Customer' );
+   has customer => ( is => 'ro', isa => 'WWW::Chargify::Customer' );
    has product => ( is => 'ro' , isa => 'WWW::Chargify::Product' );
    has credit_card => ( is => 'ro', isa => 'WWW::Chargify::CreditCard' );
    has cancellation_message => ( is => 'ro', isa => 'Str' );

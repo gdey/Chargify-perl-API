@@ -21,22 +21,31 @@ class WWW::Chargify::Customer {
    with 'WWW::Chargify::Role::List';
    with 'WWW::Chargify::Role::Find';
    
-   has 'address'      => ( is => 'rw' , isa => 'Str' );
-   has 'address_2'    => ( is => 'rw' , isa => 'Str' );
-   has 'city'         => ( is => 'rw' , isa => 'Str' );
-   has 'country'      => ( is => 'rw' , isa => 'Str' );
-   has 'created_at'   => ( is => 'rw' , isa => 'Str' );
-   has 'email'        => ( is => 'rw' , isa => 'Str' );
-   has 'first_name'   => ( is => 'rw' , isa => 'Str' );
-   has 'id'           => ( is => 'rw' , isa => 'Str' );
-   has 'last_name'    => ( is => 'rw' , isa => 'Str' );
-   has 'organization' => ( is => 'rw' , isa => 'Str' );
-   has 'phone'        => ( is => 'rw' , isa => 'Str' );
-   has 'reference'    => ( is => 'rw' , isa => 'Str' );
-   has 'state'        => ( is => 'rw' , isa => 'Str' );
-   has 'updated_at'   => ( is => 'rw' , isa => 'Str' );
-   has 'zip'          => ( is => 'rw' , isa => 'Str' );
+   has 'first_name'   => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] , required => 1);
+   has 'last_name'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] , required => 1);
+   has 'email'        => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] , required => 1);
 
+   has 'organization' => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has 'reference'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+
+   has 'id'           => ( is => 'rw' , isa => 'Num' , traits => [qw/Chargify::APIAttribute/] , predicate => 'has_id', isAPIUpdatable => 0 );
+   has [qw/ created_at updated_at /]  => ( 
+            traits => [qw/Chargify::APIAttribute/],
+            is => 'rw' , 
+            isa => 'DateTime' , 
+            isAPIUpdatable => 0,
+   );
+
+
+   # Address Information. Did not see this in the API docs.
+
+   has 'address'      => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has 'address_2'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has 'city'         => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has 'country'      => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has 'phone'        => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has 'state'        => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has 'zip'          => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
 
    sub _hash_key     { 'customer' };
    sub _resource_key { 'customers' };
@@ -77,28 +86,38 @@ class WWW::Chargify::Customer {
 
    sub save {
        my ($self,%args) = @_;
+
+       my $hash = $self->_to_hash_for_new_update();
+       # if there is an id, we need to put, otherwise we need to post.
+       if( $self->has_id ){
+          my $res_hash = $self->http->put( $self->_resource_key, $self->id, { $self->_hash_key => $hash } );
+          
+       } else {
+          my $res_hash =  $self->http->post( $self->_resource_key, $self->_to_hash() );
+          say Dumper( $res_hash );
+       }
        #$DB::signal = 1;
-       $self->http->post( $self->_resource_key, $self->_to_hash() );
        print "";
    }
-   sub _to_hash {
-       my ($self) = @_;
-       return { 
-               $self->_hash_key =>
-               { 
-                address      => $self->address,
-                address_2    => $self->address_2,
-                city         => $self->city,
-                country      => $self->country,
-                email        => $self->email,
-                first_name   => $self->first_name,
-                last_name    => $self->last_name,
-                organization => $self->organization,
-                phone        => $self->phone,
-                reference    => $self->reference,
-                state        => $self->state,
-                zip          => $self->zip,
-               }
-              };
-   }
+
+   # sub _to_hash {
+   #     my ($self) = @_;
+   #     return { 
+   #             $self->_hash_key =>
+   #             { 
+   #              address      => $self->address,
+   #              address_2    => $self->address_2,
+   #              city         => $self->city,
+   #              country      => $self->country,
+   #              email        => $self->email,
+   #              first_name   => $self->first_name,
+   #              last_name    => $self->last_name,
+   #              organization => $self->organization,
+   #              phone        => $self->phone,
+   #              reference    => $self->reference,
+   #              state        => $self->state,
+   #              zip          => $self->zip,
+   #             }
+   #            };
+   # }
 }

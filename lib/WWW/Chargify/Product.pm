@@ -61,7 +61,7 @@ class WWW::Chargify::Product {
                       hash => $hash,
                  overrides => $overrides
                );
-               $product_family_hash{$pf_id} = $hash->{product_family};
+               $product_families{$pf_id} = $hash->{product_family};
             }
           };
          return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );

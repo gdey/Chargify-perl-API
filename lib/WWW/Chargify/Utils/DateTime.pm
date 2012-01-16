@@ -1,5 +1,6 @@
 package WWW::Chargify::Utils::DateTime;
-use version 0.77; $VERSION = version->declare('v0.0.1');
+#use version 0.77; 
+our $VERSION = version->declare('v0.0.1');
 use Moose;
 use Moose::Util::TypeConstraints;
 use DateTime::Format::W3CDTF;
