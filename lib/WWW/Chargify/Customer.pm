@@ -9,11 +9,9 @@ BEGIN {
 #    use DateTime;#
 #    class_type 'DateTime';
 };
-    #use WWW::Chargify::CustomerFamily;
 
 class WWW::Chargify::Customer {
 
-   use Data::Dumper;
    use WWW::Chargify::Utils::DateTime;
    use WWW::Chargify::Utils::Bool;
 
@@ -31,6 +29,7 @@ class WWW::Chargify::Customer {
    has 'reference'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
 
    has 'id'           => ( is => 'rw' , isa => 'Num' , traits => [qw/Chargify::APIAttribute/] , predicate => 'has_id', isAPIUpdatable => 0 );
+
    has [qw/ created_at updated_at /]  => ( 
             traits => [qw/Chargify::APIAttribute/],
             is => 'rw' , 
