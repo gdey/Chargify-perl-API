@@ -5,11 +5,13 @@ BEGIN {
     use WWW::Chargify::Config;
     use WWW::Chargify::HTTP;
     use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
-    use WWW::Chargify::CreditCard;
-    use WWW::Chargify::Subscription;
 #    use DateTime;#
 #    class_type 'DateTime';
 };
+
+use WWW::Chargify::Subscription;
+use WWW::Chargify::Product;
+use WWW::Chargify::CreditCard;
 
 class WWW::Chargify::Customer {
 
@@ -24,10 +26,16 @@ class WWW::Chargify::Customer {
        required => 1
    );
 
-   has [qw/ organization reference /] => ( 
-       traits => [qw/Chargify::APIAttribute/],
-           is => 'rw', 
-          isa => 'Str', 
+   has organization => ( 
+          traits => [qw/Chargify::APIAttribute/],
+              is => 'rw', 
+             isa => 'Str', 
+   );
+   has reference => ( 
+          traits => [qw/Chargify::APIAttribute/],
+              is => 'rw', 
+             isa => 'Str', 
+       predicate => 'has_referece'
    );
 
    has id => ( 
@@ -104,12 +112,14 @@ class WWW::Chargify::Customer {
        my $http = $self->http;
 
        my $hash =  {
-            product_handle => $product->handle,
+            product_handle     => $product->handle,
             customer_reference => $self->reference,
        };
-       $hash->{ payment_profile_id } = $creditcard->id if $creditcard and $creditcard->id;
 
-       $http->post( WWW::Chargify::Subscription->_resource_key,  { WWW::Chargify::Subscription->_hash_key => $hash } );
+       $hash->{ payment_profile_id } = $creditcard->id if $creditcard and $creditcard->id;
+       my ($object, $response) = $http->post( WWW::Chargify::Subscription->_resource_key,  { WWW::Chargify::Subscription->_hash_key => $hash } );
+       use Data::Dumper;
+       print "Object: ".Dumper($object);
    }
 
 }

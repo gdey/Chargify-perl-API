@@ -14,12 +14,14 @@ no warnings;
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 use_ok("WWW::Chargify");
+use_ok("WWW::Chargify::CreditCard");
 use_ok("WWW::Chargify::Subscription");
 use_ok("WWW::Chargify::Customer");
 use_ok("WWW::Chargify::Product");
 
-open(SAVEOUT, ">&STDOUT");
-open(STDOUT, ">/dev/null") || warn "Can't redirect stdout";
+__END__
+#open(SAVEOUT, ">&STDOUT");
+#open(STDOUT, ">/dev/null") || warn "Can't redirect stdout";
 
 my $userid =  "jplummer";
 
@@ -123,5 +125,5 @@ sub gautam_play {
 
 
 }
-#gautam_play;
+gautam_play;
 

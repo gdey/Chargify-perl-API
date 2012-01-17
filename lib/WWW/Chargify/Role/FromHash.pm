@@ -37,12 +37,12 @@ method _apiName_to_attributeName(Str $api_name) {
 
    return $api_hash{$api_name} if %api_hash;
    my $meta = $self->meta;
-   foreach my $attribute_name ( sort $meta->get_attribute_list ) { 
+   foreach my $attribute ( $meta->get_all_attributes ) { 
 
-      my $attribute = $meta->get_attribute($attribute_name);
-      next unless ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
+    next unless ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
                     and $attribute->isAPIAttribute );
 
+     my $attribute_name = $attribute->name;
      my $api_key = $attribute->has_APIAttributeName 
                ?  $attribute->APIAttributeName
                :  $attribute_name;
@@ -60,7 +60,7 @@ method _to_hash( Bool :$excludeReadOnly=0 ) {
 
    my $meta = $self->meta;
    my %hash = ();
-   foreach my $attribute ( map { $meta->get_attribute($_) } sort $meta->get_attribute_list ) { 
+   foreach my $attribute (  $meta->get_all_attributes ) { 
     
      next unless ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
          and $attribute->isAPIAttribute ); 

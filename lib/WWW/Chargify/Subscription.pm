@@ -1,6 +1,8 @@
 use Modern::Perl;
 use MooseX::Declare;
 use WWW::Chargify::CreditCard;
+use WWW::Chargify::Customer;
+use WWW::Chargify::Product;
 use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
 class WWW::Chargify::Subscription {
@@ -130,6 +132,26 @@ class WWW::Chargify::Subscription {
            config => $config, 
              http => $http, 
              hash => $object->{$component_hash_key } ) ;
+
+   }
+
+   method add_subscription( $class: WWW::Chargify::Customer :$customer, WWW::Chargify::Product :$product, WWW::Chargify::CreditCard :$creditcard? ){
+
+       # We are going to be creating a new subscription for a customer.
+       # Now a customer could be new, in which case, we need to get hash for the customer, 
+       #   otherwise we need to use the customer->reference, failing that the customer->id.
+       
+       my %hash = ();
+       if ($customer->has_id) {
+
+         # So we have a customer that already exists in the system! Yay.
+         $customer->has_reference ?
+            $hash{customer_reference} = $customer->reference 
+           :$hash{customer_id} = $customer->id;
+          
+       } else {
+         $hash{ $customer->_resource_key } = $customer->_to_hash_for_new_update;
+       }
 
    }
 
