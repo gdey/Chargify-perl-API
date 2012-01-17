@@ -35,9 +35,6 @@ sub set_body {
    my ($self, %args ) = @_;
    my $request = $args{request};
    my $body = $args{body};
-
-   print "Body: $body\n";
-
    $request->headers->content_type('application/json; charset=utf-8');
    return unless $body;
    my $json = encode_json $body;
