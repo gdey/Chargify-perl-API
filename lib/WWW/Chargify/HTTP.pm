@@ -66,34 +66,39 @@ sub filter_string {
 
 sub post {
    my ($self, @path) = @_;
-   my $body = pop @path;
+   my $body = pop @path if ref($path[-1]) eq 'HASH';
+   my $options = pop @path if ref($path[-1]) eq 'HASH';
    say 'Path : '.Dumper(\@path);
    my $path = join '/', @path;
 
-   say 'Body: '.Dumper($body);
+   say 'Path: '.$path.'Body: '.Dumper($body);
 
-   $self->make_request( POST => $path, $body // "{}");
+   $self->make_request( POST => $path, $options // {}, $body // "{}");
 }
 sub put {
    my ($self, @path) = @_;
-   my $body = pop @path;
+   my $body = pop @path if ref($path[-1]) eq 'HASH';
+   my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/',@path;
-   $self->make_request( PUT => $path, $body // "{}");
+   $self->make_request( PUT => $path, $options // {}, $body // "{}");
 }
 sub get {
    my ($self, @path) = @_;
+   my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/',@path;
-   $self->make_request( GET => $path);
+   $self->make_request( GET => $path, $options);
 }
 sub head {
    my ($self, @path) = @_;
+   my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/',@path;
-   $self->make_request( HEAD => $path);
+   $self->make_request( HEAD => $path, $options);
 }
 sub delete {
    my ($self, @path) = @_;
+   my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/',@path;
-   $self->make_request( DELETE => $path);
+   $self->make_request( DELETE => $path, $options);
 }
 
 sub check_response_code {
@@ -111,8 +116,9 @@ sub check_response_code {
 
 sub make_request {
 
-   my ($self, $method, $path, $body) = @_;
+   my ($self, $method, $path, $options, $body) = @_;
 
+   $path .='?'.$self->filter_string($options) if $options;
    my $base_url = $self->config->base_url($path);
    my $request = HTTP::Request->new( $method => $base_url );
    $request->header(Accept => 'application/json');

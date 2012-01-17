@@ -26,6 +26,32 @@ use Data::Dumper;
 	
 };
 
+
+method _apiName_to_attributeName(Str $api_name) {
+
+   state %api_hash;
+   # We are going to be doing a bit of work,
+   # so, if you don't care about the results, then
+   # I'm just going to return.
+   return unless defined wantarray;
+
+   return $api_hash{$api_name} if %api_hash;
+   my $meta = $self->meta;
+   foreach my $attribute_name ( sort $meta->get_attribute_list ) { 
+
+      my $attribute = $meta->get_attribute($attribute_name);
+      next unless ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
+                    and $attribute->isAPIAttribute );
+
+     my $api_key = $attribute->has_APIAttributeName 
+               ?  $attribute->APIAttributeName
+               :  $attribute_name;
+     $api_hash{$api_key} = $attribute_name
+   }
+   return $api_hash{$api_name};
+
+}
+
 method _to_hash_for_new_update() { return $self->_to_hash( excludeReadOnly => 1 ) }
 
 method _to_hash( Bool :$excludeReadOnly=0 ) {
@@ -36,25 +62,19 @@ method _to_hash( Bool :$excludeReadOnly=0 ) {
    my %hash = ();
    foreach my $attribute ( map { $meta->get_attribute($_) } sort $meta->get_attribute_list ) { 
     
-      next unless ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
+     next unless ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
          and $attribute->isAPIAttribute ); 
+         
+     next if ( $excludeReadOnly and !$attribute->isAPIUpdatable );
 
-      if ( $attribute->does('WWW::Chargify::Meta::Attribute::Trait::APIAttribute')
-         and $attribute->isAPIAttribute ) {
+     my $reader = $attribute->get_read_method;
+     my $value = $self->$reader;
+     next unless $value;
 
-         my $key;
-         if( $attribute->has_APIAttributeName ){
-            $key = $attribute->APIAttributeName;
-         } else {
-            $key = $attribute->name;
-         };
-
-         next if ( $excludeReadOnly and !$attribute->isAPIUpdatable );
-         my $reader = $attribute->get_read_method;
-         my $value = $self->$reader;
-         next unless $value;
-         $hash{$key} = $value;
-      }
+     my $key = $attribute->has_APIAttributeName 
+               ?  $attribute->APIAttributeName
+               :  $attribute->name;
+     $hash{$key} = $value;
    }
    return wantarray ? %hash : \%hash;
 }

@@ -67,6 +67,10 @@ class WWW::Chargify::Product {
          return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );
       }
    }
+
+   method find_by_handle( $class: WWW::Chargify::HTTP :$http, Str :$handle ) { 
+      $class->_find_by( http => $http, params => [ handle => $handle ] ) 
+   }
    
    sub find_by {
       

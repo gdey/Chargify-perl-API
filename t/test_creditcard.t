@@ -17,16 +17,14 @@ my $cust;
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 use_ok("WWW::Chargify");
-use_ok("WWW::Chargify::Customer");
-use_ok("WWW::Chargify::Product");
+use_ok("WWW::Chargify::CreditCard");
 
 
-$chargify = WWW::Chargify->new(  
-                                 subdomain  => $ENV{SUBDOMAIN},
+exit;
+
+$chargify = WWW::Chargify->new(  subdomain  => $ENV{SUBDOMAIN},
                                  apiKey     => $ENV{APIKEY}
                              );
-
-ok($chargify);
 
 #@products = $chargify->product_families();
 

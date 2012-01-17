@@ -55,18 +55,21 @@ class WWW::Chargify::Subscription {
    
    around _from_hash( $class: WWW::Chargify::Config :$config, 
                        WWW::Chargify::HTTP :$http, HashRef :$hash, HashRef :$overrides = {} ){
-       my $customer_hash = $hash->{'customer'};
-       delete $hash->{'customer'};
-       say 'Removing Customer date: '.Dumper($customer_hash);
-       #my $customer = WWW::Chargify::Product->_from_hash(config => $config, http => $http, hash => $
+
+       my $customer_hash = $hash->{ WWW::Chargify::Customer->_hash_key };
+       my $customer = WWW::Chargify::Customer->_from_hash( config => $config, http => $http, hash => $customer_hash );
+       $hash->{ WWW::Chargify::Customer->_hash_key } = $customer;
+
        my $product = WWW::Chargify::Product->_from_hash(
              config => $config, 
              http => $http, 
              hash => $hash->{ WWW::Chargify::Product->_hash_key }
        );
        $hash->{ WWW::Chargify::Product->_hash_key } = $product;
+
        if( exists  $hash->{ WWW::Chargify::CreditCard->_hash_key } and 
            defined $hash->{ WWW::Chargify::CreditCard->_hash_key } ){
+
           my $credit_card_hash = $hash->{ WWW::Chargify::CreditCard->_hash_key };
           say 'Removing credit card date: '.Dumper($credit_card_hash);
           my $credit_card = WWW::Chargify::CreditCard->_from_hash(
@@ -75,6 +78,7 @@ class WWW::Chargify::Subscription {
                  hash => $credit_card_hash);
           $hash->{ WWW::Chargify::CreditCard->_hash_key } = $credit_card;
        }
+
        return $orig->($class, config => $config, http => $http, hash => $hash, overrides => $overrides);
        
    }
@@ -128,6 +132,7 @@ class WWW::Chargify::Subscription {
              hash => $object->{$component_hash_key } ) ;
 
    }
-   
+
+
 
 }

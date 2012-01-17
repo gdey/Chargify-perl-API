@@ -1,11 +1,12 @@
 BEGIN {
-    use Modern::Perl;
+    use 5.10.0;
     use MooseX::Declare;
     use MooseX::Types;
     use WWW::Chargify::Config;
     use WWW::Chargify::HTTP;
-    use 5.10.0;
     use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
+    use WWW::Chargify::CreditCard;
+    use WWW::Chargify::Subscription;
 #    use DateTime;#
 #    class_type 'DateTime';
 };
@@ -15,72 +16,100 @@ class WWW::Chargify::Customer {
    use WWW::Chargify::Utils::DateTime;
    use WWW::Chargify::Utils::Bool;
 
-   with 'WWW::Chargify::Role::Config';
-   with 'WWW::Chargify::Role::HTTP';
-   with 'WWW::Chargify::Role::FromHash';
-   with 'WWW::Chargify::Role::List';
-   with 'WWW::Chargify::Role::Find';
    
-   has 'first_name'   => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] , required => 1);
-   has 'last_name'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] , required => 1);
-   has 'email'        => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] , required => 1);
+   has [qw/ first_name last_name email /]   => ( 
+         traits => [qw/Chargify::APIAttribute/] , 
+             is => 'rw' , 
+            isa => 'Str' , 
+       required => 1
+   );
 
-   has 'organization' => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
-   has 'reference'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has [qw/ organization reference /] => ( 
+       traits => [qw/Chargify::APIAttribute/],
+           is => 'rw', 
+          isa => 'Str', 
+   );
 
-   has 'id'           => ( is => 'rw' , isa => 'Num' , traits => [qw/Chargify::APIAttribute/] , predicate => 'has_id', isAPIUpdatable => 0 );
+   has id => ( 
+               traits => [qw/Chargify::APIAttribute/] , 
+                   is => 'rw' , 
+                  isa => 'Num' , 
+            predicate => 'has_id', 
+       isAPIUpdatable => 0 
+   );
 
-   has [qw/ created_at updated_at /]  => ( 
-            traits => [qw/Chargify::APIAttribute/],
-            is => 'rw' , 
-            isa => 'DateTime' , 
-            isAPIUpdatable => 0,
-            coerce => 1,
+   has [qw/ created_at updated_at /]        => ( 
+               traits => [qw/Chargify::APIAttribute/],
+                   is => 'rw' , 
+                  isa => 'DateTime' , 
+               coerce => 1,
+       isAPIUpdatable => 0,
    );
 
 
    # Address Information. Did not see this in the API docs.
    # This will set the shipping address information for the user.
+   has [qw/ address address_2 city country state zip /] => (
+       traits => [qw/Chargify::APIAttribute/],
+           is => 'rw' , 
+          isa => 'Str' , 
+   );
 
-   has 'address'      => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
-   has 'address_2'    => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
-   has 'city'         => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
-   has 'country'      => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
-   has 'phone'        => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
-   has 'state'        => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
-   has 'zip'          => ( is => 'rw' , isa => 'Str' , traits => [qw/Chargify::APIAttribute/] );
+   has phone => (
+       traits => [qw/Chargify::APIAttribute/],
+           is => 'rw' , 
+          isa => 'Str' , 
+   );
+
+   with 'WWW::Chargify::Role::Config';
+   with 'WWW::Chargify::Role::HTTP';
+   with 'WWW::Chargify::Role::FromHash';
+   with 'WWW::Chargify::Role::List';
+   with 'WWW::Chargify::Role::Find';
+   with 'WWW::Chargify::Role::Save';
 
    sub _hash_key     { 'customer' };
    sub _resource_key { 'customers' };
 
-   method find_by_reference($class: WWW::Chargify::HTTP :$http, Str :$reference ){
-        my $config = $http->config;
-        return $class->_find_by($http => $http, params => [ reference => $reference ] ); 
-   }
+   method find_by_reference( $class: WWW::Chargify::HTTP :$http, Str :$reference ){ 
 
-   method find_by_query( $class: WWW::Chargify::HTTP :$http, Str :$query ){
-
-      my $options = { q => $query, commit => 'Search' };
-      my @customers =  $class->list( http => $http, options => $options );
-
-      return wantarray? @customers : \@customers;
+      $class->_find_by( http => $http, params => [ lookup => {reference => $reference} ] ) 
 
    }
 
-   method save {
-
-       my $hash = $self->_to_hash_for_new_update();
-       my ($res_hash, $response) = $self->has_id ? $self->http->put(  $self->_resource_key, $self->id, { $self->_hash_key => $hash } )
-                                                 : $self->http->post( $self->_resource_key,            { $self->_hash_key => $hash } );
-       # if there is an id, we need to put, otherwise we need to post.
-       if ( $res_hash and $res_hash->{ $self->_hash_key } ){
-          my %rhash = %{$res_hash->{ $self->_hash_key }};
-          foreach my $key ( keys %rhash ){
-             $self->$key($rhash{$key}) if $rhash{$key};
-          }
-       }
+   method list_by_query( $class: WWW::Chargify::HTTP :$http, Str :$query ){ 
+      $class->list(     http => $http, options => { q => $query, commit => 'Search' } ) 
    }
 
+   method subscriptions {
 
+      my $id = $self->id;
+      my $config = $self->config;
+      my $http = $self->http;
+      my $resource_key = $self->_resource_key;
+      my $subscription_hash_key = WWW::Chargify::Subscription->_hash_key;
+      my $subscription_resource_key = WWW::Chargify::Subscription->_resource_key;
+   
+      my ($objects, $response) = $http->get($resource_key,$id,$subscription_resource_key);
+      return map { WWW::Chargify::Subscription->_from_hash( 
+         config => $config, 
+           http => $http, 
+           hash => $_->{$subscription_hash_key}  
+      ) } @{$objects};
+
+   }
+
+   method add_subscription( WWW::Chargify::Product :$product, WWW::Chargify::CreditCard :$creditcard? ){
+
+       my $http = $self->http;
+
+       my $hash =  {
+            product_handle => $product->handle,
+            customer_reference => $self->reference,
+       };
+       $hash->{ payment_profile_id } = $creditcard->id if $creditcard and $creditcard->id;
+
+       $http->post( WWW::Chargify::Subscription->_resource_key,  { WWW::Chargify::Subscription->_hash_key => $hash } );
+   }
 
 }
