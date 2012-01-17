@@ -109,17 +109,13 @@ class WWW::Chargify::Customer {
 
    method add_subscription( WWW::Chargify::Product :$product, WWW::Chargify::CreditCard :$creditcard? ){
 
-       my $http = $self->http;
+       return WWW::Chargify::Subscription->add_subscription(
+          http => $self->http,
+          product => $product,
+          customer => $self,
+          creditcard => $creditcard
+       );
 
-       my $hash =  {
-            product_handle     => $product->handle,
-            customer_reference => $self->reference,
-       };
-
-       $hash->{ payment_profile_id } = $creditcard->id if $creditcard and $creditcard->id;
-       my ($object, $response) = $http->post( WWW::Chargify::Subscription->_resource_key,  { WWW::Chargify::Subscription->_hash_key => $hash } );
-       use Data::Dumper;
-       print "Object: ".Dumper($object);
    }
 
 }

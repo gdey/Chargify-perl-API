@@ -135,23 +135,43 @@ class WWW::Chargify::Subscription {
 
    }
 
-   method add_subscription( $class: WWW::Chargify::Customer :$customer, WWW::Chargify::Product :$product, WWW::Chargify::CreditCard :$creditcard? ){
-
+   method add_subscription( $class: WWW::Chargify::HTTP       :$http, WWW::Chargify::Customer   :$customer, WWW::Chargify::Product    :$product, WWW::Chargify::CreditCard :$creditcard? ){ 
        # We are going to be creating a new subscription for a customer.
        # Now a customer could be new, in which case, we need to get hash for the customer, 
        #   otherwise we need to use the customer->reference, failing that the customer->id.
        
        my %hash = ();
-       if ($customer->has_id) {
+       
+       $hash{ product_handle } = $product->handle;
 
+       if ($customer->has_id) {
          # So we have a customer that already exists in the system! Yay.
          $customer->has_reference ?
             $hash{customer_reference} = $customer->reference 
            :$hash{customer_id} = $customer->id;
-          
        } else {
          $hash{ $customer->_resource_key } = $customer->_to_hash_for_new_update;
        }
+
+       if( $creditcard ){
+          if( $creditcard->has_id ){
+
+             $hash{ payment_profile_id } = $creditcard->payment_profile_id;
+
+          } else {
+
+             $hash{ payment_profile_attributes } = $creditcard->_to_hash_for_new_update;
+
+          }
+       }
+
+       my ($object, $response) = $http->post ( 
+          WWW::Chargify::Subscription->_resource_key,  
+          { WWW::Chargify::Subscription->_hash_key => \%hash } 
+       );
+
+       use Data::Dumper;
+       print "Object: ".Dumper($object);
 
    }
 
