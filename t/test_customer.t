@@ -5,7 +5,7 @@ use strict;
 use Moose;
 use Test::Exception;
 use Date::Format;
-use Test::More tests => 11;
+use Test::More tests => 12;
 my $chargify;
 my @products;
 my $cust;

@@ -110,25 +110,27 @@ class WWW::Chargify::Customer {
 
    }
 
-   method add_subscription( 
-       WWW::Chargify::Product :$product, 
-       WWW::Chargify::CreditCard :$creditcard?, 
-       Str :$coupon_code?,
-       DateTime :$next_billing_at?, Str :$vat_number? ){
+   method add_subscription
+          ( 
+           WWW::Chargify::Product :$product, 
+           WWW::Chargify::CreditCard :$creditcard?, 
+           Str :$coupon_code?,
+           DateTime :$next_billing_at?, Str :$vat_number? 
+          ){
 
        my %hash = (
-          creditcard => $creditcard,
-          next_billing_at => $next_billing_at,
-          vat_number => $vat_number,
-          coupon_code => $coupon_code
-       );
+                   creditcard => $creditcard,
+                   next_billing_at => $next_billing_at,
+                   vat_number => $vat_number,
+                   coupon_code => $coupon_code
+                  );
 
        my $newsubscription = WWW::Chargify::Subscription->add_subscription(
-          http => $self->http,
-          product => $product,
-          customer => $self,
-          map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash
-       );
+                                                                           http => $self->http,
+                                                                           product => $product,
+                                                                           customer => $self,
+                                                                           map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash
+                                                                          );
 
        my $chash = $newsubscription->customer->_to_hash;
        $self->_save( hash => $chash );
