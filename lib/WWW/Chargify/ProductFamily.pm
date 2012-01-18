@@ -64,7 +64,6 @@ class WWW::Chargify::ProductFamily {
 method components {
    my ($config, $http) = ($self->config, $self->http);
    my ($components_json, $response) = $http->get(product_families => $self->id, 'components');
-   say 'Component: '.Dumper($components_json);
    return map {
       my $component = $_->{component};
       WWW::Chargify::Component->_from_hash( config => $config, http => $http, hash => $component );
@@ -75,7 +74,6 @@ method find_component_by_id( Num $component_id ) {
    my ($config, $http) = ($self->config, $self->http);
    my ($component_json, $response) = 
        $self->http->get(product_families => $self->id, components => $component_id);
-   say 'Component: '.Dumper($component_json);
    return undef unless $component_json;
    return WWW::Chargify::Component->_from_hash( config => $config, http => $http, hash => $component_json->{component} );
 }

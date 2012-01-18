@@ -1,21 +1,24 @@
 use Modern::Perl;
 use MooseX::Declare;
-use WWW::Chargify::CreditCard;
-use WWW::Chargify::Customer;
-use WWW::Chargify::Product;
-use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
 class WWW::Chargify::Subscription {
 
    use DateTime;
    use Data::Dumper;
+
+   use WWW::Chargify::CreditCard;
+   use WWW::Chargify::Customer;
+   use WWW::Chargify::Product;
+   use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
+
+   
    
    with 'WWW::Chargify::Role::Config';
    with 'WWW::Chargify::Role::HTTP';
    with 'WWW::Chargify::Role::FromHash';
-   with 'WWW::Chargify::Role::List'; 
    with 'WWW::Chargify::Role::Find';
-   
+   with 'WWW::Chargify::Role::List'; 
+
    has id => ( is => 'ro', isa => 'Num', traits => [qw[Chargify::APIAttribute]]);
    has state => ( is => 'ro', isa => 'Str', traits => [qw[Chargify::APIAttribute]] );
    has balance_in_cents => ( is => 'ro', isa => 'Num');
@@ -34,6 +37,7 @@ class WWW::Chargify::Subscription {
               isa => 'DateTime',
               coerce => 1,
    );
+
    has trial_started_at => ( is  => 'ro', isa => 'DateTime', coerce => 1, );
    has trial_ended_at => ( is => 'ro', isa => 'DateTime', coerce => 1, );
    has activated_at => ( is => 'ro', isa => 'DateTime', coerce => 1, );
@@ -73,7 +77,6 @@ class WWW::Chargify::Subscription {
            defined $hash->{ WWW::Chargify::CreditCard->_hash_key } ){
 
           my $credit_card_hash = $hash->{ WWW::Chargify::CreditCard->_hash_key };
-          say 'Removing credit card date: '.Dumper($credit_card_hash);
           my $credit_card = WWW::Chargify::CreditCard->_from_hash(
                config => $config, 
                  http => $http, 
@@ -135,7 +138,17 @@ class WWW::Chargify::Subscription {
 
    }
 
-   method add_subscription( $class: WWW::Chargify::HTTP       :$http, WWW::Chargify::Customer   :$customer, WWW::Chargify::Product    :$product, WWW::Chargify::CreditCard :$creditcard? ){ 
+   method add_subscription( $class: 
+
+         WWW::Chargify::HTTP :$http,
+         WWW::Chargify::Customer :$customer,
+         WWW::Chargify::Product :$product,
+         WWW::Chargify::CreditCard :$creditcard?,
+         Str :$coupon_code?,
+         DateTime :$next_billing_at?,
+         Str :$vat_number? 
+  ){ 
+
        # We are going to be creating a new subscription for a customer.
        # Now a customer could be new, in which case, we need to get hash for the customer, 
        #   otherwise we need to use the customer->reference, failing that the customer->id.
@@ -146,34 +159,58 @@ class WWW::Chargify::Subscription {
 
        if ($customer->has_id) {
          # So we have a customer that already exists in the system! Yay.
+         warn "Customer reference: ".$customer->reference;
+         warn "Customer id: ".$customer->id;
          $customer->has_reference ?
-            $hash{customer_reference} = $customer->reference 
-           :$hash{customer_id} = $customer->id;
+             ( $hash{customer_reference} = $customer->reference )
+           : ( $hash{customer_id} = $customer->id );
        } else {
-         $hash{ $customer->_resource_key } = $customer->_to_hash_for_new_update;
+         $hash{ customer_attributes } = $customer->_to_hash_for_new_update;
        }
 
        if( $creditcard ){
           if( $creditcard->has_id ){
-
              $hash{ payment_profile_id } = $creditcard->payment_profile_id;
-
           } else {
-
              $hash{ payment_profile_attributes } = $creditcard->_to_hash_for_new_update;
-
           }
        }
 
-       my ($object, $response) = $http->post ( 
-          WWW::Chargify::Subscription->_resource_key,  
-          { WWW::Chargify::Subscription->_hash_key => \%hash } 
-       );
+       if( $coupon_code ){
+          $hash{ coupon_code } = $coupon_code;
+       }
 
-       use Data::Dumper;
-       print "Object: ".Dumper($object);
+       $hash{next_billing_at} = DateTime::Format::W3CDTF->new->format_datetime($next_billing_at) if $next_billing_at ;
+       $hash{vat_number} = $vat_number if $vat_number;
+
+       my ($object, $response) = $http->post ( $class->_resource_key,  { $class->_hash_key => \%hash } );
+       my $config = $http->config;
+       return $class->_from_hash( http => $http, config => $config, hash => $object->{$class->_hash_key} );
+   }
+
+   method migrate ( WWW::Chargify::Product :$to_product,
+      Bool :$include_trial=0,
+      Bool :$include_initial_charge=0,
+      Bool :$preview=0
+   ){
+
+      my $http = $self->http;
+      my $hash = {
+            product_handle => $to_product->handle,
+            include_trial => $include_trial,
+            include_initial_charge => $include_initial_charge
+      };
+
+      if( $preview ){
+         my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => 'preview.json', $hash );
+         return $object;  
+      }
+
+      my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => $hash );
+      return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
 
    }
+      
 
 
 

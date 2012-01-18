@@ -65,10 +65,8 @@ sub post {
    my ($self, @path) = @_;
    my $body = pop @path if ref($path[-1]) eq 'HASH';
    my $options = pop @path if ref($path[-1]) eq 'HASH';
-   say 'Path : '.Dumper(\@path);
    my $path = join '/', @path;
 
-   say 'Path: '.$path.'Body: '.Dumper($body);
 
    $self->make_request( POST => $path, $options // {}, $body // "{}");
 }
@@ -100,14 +98,22 @@ sub delete {
 
 sub check_response_code {
 
-	my ($self, $response) = @_;
+	my ($self, $response, $sent_body) = @_;
+  $sent_body = '<<EMPTY BODY>>' unless defined $sent_body;
+
   my $code = $response->code;
-	confess 'NotFoundError'       if $code eq '404';
-	confess 'UnprocessableEntity: '.$response->decoded_content if $code eq '422';
-  confess 'AuthenticationError' if $code eq '401';
-  confess 'AuthorizationError'  if $code eq '403';
-  confess 'ServerError'         if $code eq '500';
-  confess 'DownForMaintenance'  if $code eq '503';
+
+  my $error_type = 'UNKNOWN'; 
+
+	$error_type = 'NotFoundError'         if $code eq '404';
+	$error_type = 'UnprocessableEntity: ' if $code eq '422';
+  $error_type = 'AuthenticationError'   if $code eq '401';
+  $error_type = 'AuthorizationError'    if $code eq '403';
+  $error_type = 'ServerError'           if $code eq '500';
+  $error_type = 'DownForMaintenance'    if $code eq '503';
+
+  confess " $error_type ($code) :".$response->decoded_content . "\n sent body: $sent_body\n";
+
 
 }
 
@@ -122,19 +128,18 @@ sub make_request {
    $request->headers->authorization_basic(
       $self->config->apiKey,$self->config->apiPass
    );
-   say "Doing: $method => $base_url";
-
-   say 'Body: '.Dumper($body) if $body;
    $self->set_body( request => $request, body => $body );
+
+   my $content_body = $request->content;
+
    my $response = $self->userAgent->request($request);
    if ( $response->is_success ) {
-       say 'got back: '.$response->decoded_content;
        my $value = decode_json($response->decoded_content);
        return wantarray? ($value,$response) : $value;
    }
 
    #TODO:  Need to handle errors here.
-   $self->check_response_code($response);
+   $self->check_response_code($response, $content_body);
    return wantarray? (undef,$response) : undef;
 } 
 

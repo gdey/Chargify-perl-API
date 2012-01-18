@@ -99,27 +99,84 @@ sub gautam_play {
     my $rand = rand();
     print "rand seed is : $rand\n";
     my $product = WWW::Chargify::Product->find_by_handle( http => $chargify->http, handle => 'foo' );
-    print Dumper($product);
-    $cust =  $chargify->newCustomer( first_name => 'Joe'.$rand, last_name => 'Plummer', email => 'joeplummer@pipecleaning.com', reference => 'jplummer'.$rand );
-    
-    $cust->save();
-    
-    $cust->organization("Joe Plumming");
-    $cust->address("123 BillingSt.");
-    $cust->address_2("#3");
-    $cust->city("San Diego ");
-    $cust->country("CA");
-    $cust->phone("8585551212");
-    $cust->state("CA");
-    $cust->zip("92104");
-    
-    # This will update the customer.
-    $cust->save();
+    #print Dumper($product);
+    #$cust =  $chargify->newCustomer( first_name => 'Joe'.$rand, last_name => 'Plummer', email => 'joeplummer@pipecleaning.com', reference => 'jplummer'.$rand );
+    #
+    #$cust->save();
+    #
+    ##$cust->organization("Joe Plumming");
+    ##$cust->address("123 BillingSt.");
+    ##$cust->address_2("#3");
+    ##$cust->city("San Diego ");
+    ##$cust->country("CA");
+    ##$cust->phone("8585551212");
+    ##$cust->state("CA");
+    ##$cust->zip("92104");
+    #
+    ## This will update the customer.
+    #$cust->save();
     
     # Add a subscription to the customer.
-    print Dumper( $cust->add_subscription( product => $product ) );
+    #print Dumper( $cust->add_subscription( product => $product ) );
+    #print Dumper( $cust->add_subscription( 
+    #         product => $product, 
+    #         creditcard => WWW::Chargify::CreditCard->new(
+    #             config => $cust->config,
+    #             http   => $cust->http,
+    #             full_number      => '4'.'1'x15,
+    #             billing_address  => '123 Springfield',
+    #             billing_address2 => 'apt #2',
+    #             billing_city     => 'San Diego',
+    #             billing_state    => 'CA',
+    #             billing_zip      => '92116', 
+    #             billing_country  => 'US',
+    #             cvv              => '123',
+    #             expiration_month => '12',
+    #             expiration_year  => '2015',
+    #             card_type        => 'visa',
+    #) ) );
 
-    print Dumper( WWW::Chargify::Customer->find_by_id( http => $chargify->http, id => '1284781' ) );
+    # Here we are creating a new customer, new creditcard information, and a subscription, all at one time.
+    my $cust1 =  $chargify->newCustomer( first_name => 'Joe'.$rand, last_name => 'Plummer', email => 'joeplummer@pipecleaning.com', reference => 'jplummer'.$rand );
+    print Dumper( $cust1->add_subscription( 
+             product => $product, 
+             next_billing_at => DateTime->now->add( days => 10 ),
+             coupon_code => 'WHY',
+             creditcard => WWW::Chargify::CreditCard->new(
+                 config => $cust->config,
+                 http   => $cust->http,
+                 full_number      => '4'.'1'x15,
+                 billing_address  => '123 Springfield',
+                 billing_address2 => 'apt #2',
+                 billing_city     => 'San Diego',
+                 billing_state    => 'CA',
+                 billing_zip      => '92116', 
+                 billing_country  => 'US',
+                 cvv              => '123',
+                 expiration_month => '12',
+                 expiration_year  => '2015',
+                 card_type        => 'visa',
+    ) ) );
+    #my $cust2 =  $chargify->newCustomer( first_name => 'Joe'.$rand, last_name => 'Plummer', email => 'joeplummer@pipecleaning.com', reference => 'jplummer'.$rand );
+    #print Dumper( $cust2->add_subscription( 
+    #         product => $product, 
+    #         next_billing_at => DateTime->now->add( days => 2 ),
+    #         creditcard => WWW::Chargify::CreditCard->new(
+    #             config => $cust->config,
+    #             http   => $cust->http,
+    #             full_number      => '4'.'1'x15,
+    #             billing_address  => '123 Springfield',
+    #             billing_address2 => 'apt #2',
+    #             billing_city     => 'San Diego',
+    #             billing_state    => 'CA',
+    #             billing_zip      => '92116', 
+    #             billing_country  => 'US',
+    #             cvv              => '123',
+    #             expiration_month => '12',
+    #             expiration_year  => '2015',
+    #             card_type        => 'visa',
+    #) ) );
+
 
 
 }

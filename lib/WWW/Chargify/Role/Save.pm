@@ -9,7 +9,24 @@ role WWW::Chargify::Role::Save {
    requires 'id';
    requires 'has_id';
    requires 'meta';
+   requires '_apiName_to_attributeName';
 
+   method _save( HashRef :$hash ) {
+
+      my $meta = $self->meta;
+      my %rhash = %{$hash};
+      foreach my $key ( keys %rhash ){
+
+         next unless $rhash{$key};
+
+         my $attribute = $meta->get_attribute( $self->_apiName_to_attributeName($key) );
+         next unless $attribute;
+         my $setter = $attribute->get_write_method;
+         next unless $setter; # This is a read only attribute.
+         $self->$setter($rhash{$key}); 
+      }
+
+   }
    method save {
 
        my $meta = $self->meta;
@@ -20,23 +37,8 @@ role WWW::Chargify::Role::Save {
                                  ? $self->http->put(  $self->_resource_key, $self->id, { $self->_hash_key => $hash } )
                                  : $self->http->post( $self->_resource_key,            { $self->_hash_key => $hash } );
 
-       if ( $res_hash and $res_hash->{ $self->_hash_key } ){
-
-          my %rhash = %{$res_hash->{ $self->_hash_key }};
-
-          foreach my $key ( keys %rhash ){
-
-             next unless $rhash{$key};
-
-             my $attribute = $meta->get_attribute( $self->_apiName_to_attributeName($key) );
-             next unless $attribute;
-
-             my $setter = $attribute->get_write_method;
-             next unless $setter; # This is a read only attribute.
-             $self->$setter($rhash{$key}); 
-          }
-
-       }
+       $self->_save( hash => $res_hash->{ $self->_hash_key } )
+                 if ( $res_hash and $res_hash->{ $self->_hash_key } );
    }
 
 };

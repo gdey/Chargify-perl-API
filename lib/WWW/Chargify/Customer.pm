@@ -2,19 +2,20 @@ BEGIN {
     use 5.10.0;
     use MooseX::Declare;
     use MooseX::Types;
-    use WWW::Chargify::Config;
-    use WWW::Chargify::HTTP;
-    use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 #    use DateTime;#
 #    class_type 'DateTime';
 };
 
-use WWW::Chargify::Subscription;
-use WWW::Chargify::Product;
-use WWW::Chargify::CreditCard;
 
 class WWW::Chargify::Customer {
 
+   use WWW::Chargify;
+   use WWW::Chargify::Subscription;
+   use WWW::Chargify::Product;
+   use WWW::Chargify::CreditCard;
+   use WWW::Chargify::Config;
+   use WWW::Chargify::HTTP;
+   use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
    use WWW::Chargify::Utils::DateTime;
    use WWW::Chargify::Utils::Bool;
 
@@ -35,7 +36,7 @@ class WWW::Chargify::Customer {
           traits => [qw/Chargify::APIAttribute/],
               is => 'rw', 
              isa => 'Str', 
-       predicate => 'has_referece'
+       predicate => 'has_reference'
    );
 
    has id => ( 
@@ -92,6 +93,8 @@ class WWW::Chargify::Customer {
    method subscriptions {
 
       my $id = $self->id;
+      return [] unless $id; # we are not saved.
+
       my $config = $self->config;
       my $http = $self->http;
       my $resource_key = $self->_resource_key;
@@ -107,14 +110,29 @@ class WWW::Chargify::Customer {
 
    }
 
-   method add_subscription( WWW::Chargify::Product :$product, WWW::Chargify::CreditCard :$creditcard? ){
+   method add_subscription( 
+       WWW::Chargify::Product :$product, 
+       WWW::Chargify::CreditCard :$creditcard?, 
+       Str :$coupon_code?,
+       DateTime :$next_billing_at?, Str :$vat_number? ){
 
-       return WWW::Chargify::Subscription->add_subscription(
+       my %hash = (
+          creditcard => $creditcard,
+          next_billing_at => $next_billing_at,
+          vat_number => $vat_number,
+          coupon_code => $coupon_code
+       );
+
+       my $newsubscription = WWW::Chargify::Subscription->add_subscription(
           http => $self->http,
           product => $product,
           customer => $self,
-          creditcard => $creditcard
+          map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash
        );
+
+       my $chash = $newsubscription->customer->_to_hash;
+       $self->_save( hash => $chash );
+       return $self;
 
    }
 

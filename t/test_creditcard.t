@@ -16,7 +16,6 @@ my $cust;
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-use_ok("WWW::Chargify");
 use_ok("WWW::Chargify::CreditCard");
 
 
