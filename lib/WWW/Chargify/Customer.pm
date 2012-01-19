@@ -132,14 +132,13 @@ package WWW::Chargify::Customer;
           vat_number => $args{vat_number},
           coupon_code => $args{coupon_code}
        );
-
-       my $newsubscription = WWW::Chargify::Subscription->add_subscription(
-          http => $self->http,
-          product => $product,
-          customer => $self,
-          map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash
-       );
-
+       my $newsubscription = 
+               WWW::Chargify::Subscription->add_subscription(
+                  http => $self->http,
+                  product => $product,
+                  customer => $self,
+                  map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash
+               );
        my $chash = $newsubscription->customer->_to_hash;
        $self->_save( hash => $chash );
        return $self;
