@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 #-completion-mode doesn't use own key-map.
 
-
 use strict;
 use Moose;
 use 5.10.0;
@@ -11,9 +10,13 @@ use lib './lib';
 use Test::More tests => 4;
 use Test::Exception;
 use Data::Dumper;
+use Log::Log4perl;
+no warnings;
 my $chargify;
 my @products;
 my $cust;
+my $loglevel = eval{ eval("\$Log::Log4perl::$ENV{DEBUG_LEVEL}") } || $Log::Log4perl::DEBUG;
+
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 sub debug_print($);
@@ -21,9 +24,11 @@ sub debug_print($);
 use_ok("WWW::Chargify::CreditCard");
 
 
-$chargify = WWW::Chargify->new(  subdomain  => $ENV{SUBDOMAIN},
+$chargify = WWW::Chargify->new(  subdomain  => $ENV{SUBDOMAIN2},
                                  apiKey     => $ENV{APIKEY}
                              );
+$chargify->logger->level( $loglevel );
+
 
 #@products = $chargify->product_families();
 

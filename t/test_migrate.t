@@ -6,11 +6,12 @@
 
 
 use strict;
-use WWW::Chargify;
-use WWW::Chargify::Subscription;
-use WWW::Chargify::Customer;
 use Test::More ;
 use Test::Exception;
+
+use_ok("WWW::Chargify");
+use_ok("WWW::Chargify::Subscription");
+use_ok("WWW::Chargify::Customer");
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  VARS  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 

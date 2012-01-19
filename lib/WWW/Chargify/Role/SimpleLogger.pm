@@ -10,7 +10,7 @@ our $_LOGGER;
 
 has logger => ( is      => 'rw', 
                 isa     => "ValidLogger",
-                lazy    => 1,
+                lazy    => 0,
                 builder => "_build_logger"
               ); 
 ##

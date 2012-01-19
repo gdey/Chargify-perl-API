@@ -5,6 +5,7 @@ use strict;
 use Moose;
 use Test::Exception;
 use Date::Format;
+use Log::Log4perl;
 use Test::More tests => 12;
 my $chargify;
 my @products;
@@ -21,12 +22,19 @@ use_ok("WWW::Chargify::Product");
 open(SAVEOUT, ">&STDOUT");
 open(STDOUT, ">/dev/null") || warn "Can't redirect stdout";
 
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  VARIABLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 my $userid =  "jplummer";
+my $loglevel = eval{ eval("\$Log::Log4perl::$ENV{DEBUG_LEVEL}") } || 
+               $Log::Log4perl::DEBUG;
+ 
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  TESTS  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 $chargify = WWW::Chargify->new(  
                                  subdomain  => $ENV{SUBDOMAIN},
                                  apiKey     => $ENV{APIKEY}
                              );
+$chargify->logger->level( $loglevel );
 
 ok($chargify, 'Got a good chargify object');
 
