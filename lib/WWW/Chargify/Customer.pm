@@ -11,8 +11,7 @@ package WWW::Chargify::Customer;
    use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
    use WWW::Chargify::Utils::DateTime;
    use WWW::Chargify::Utils::Bool;
-#   use namespace::autoclean;
-
+   with 'WWW::Chargify::Role::SimpleLogger';
    
    has [qw/ first_name last_name email /]   => ( 
          traits => [qw/Chargify::APIAttribute/] , 
@@ -98,6 +97,7 @@ package WWW::Chargify::Customer;
       my $self = shift;
 
       my $id = $self->id;
+
       return [] unless $id; # we are not saved.
 
       my $config = $self->config;
@@ -105,7 +105,7 @@ package WWW::Chargify::Customer;
       my $resource_key = $self->_resource_key;
       my $subscription_hash_key = WWW::Chargify::Subscription->_hash_key;
       my $subscription_resource_key = WWW::Chargify::Subscription->_resource_key;
-   
+
       my ($objects, $response) = $http->get($resource_key,$id,$subscription_resource_key);
       return map { WWW::Chargify::Subscription->_from_hash( 
          config => $config, 

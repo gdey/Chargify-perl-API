@@ -49,12 +49,11 @@ sub products {
 
    my ($config, $http) = ($self->config, $self->http);
    my ($products, $response) = $self->http->get(product_families => $self->id, 'products');
-
    return map {
-          WWW::Chargify::Prouduct->_from_hash(
+          WWW::Chargify::Product->_from_hash(
               http => $http,
               config => $config,
-              hash => $_ ,
+              hash => $_->{product} ,
               overrides => {
                   $self->_hash_key => $self
               });

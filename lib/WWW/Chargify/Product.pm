@@ -55,7 +55,7 @@ around _from_hash =>  sub {
     my $hash = $args{hash} || confess 'hash is requried.';
     my $config = $args{config} || confess 'config is required.';
     my $overrides = $args{overrides} || {};
-
+    
     my $product_family_hash = $hash->{product_family};
     if( $product_family_hash and ref($product_family_hash) eq 'HASH'){
       my $pf_id = $product_family_hash->{id};
@@ -66,8 +66,8 @@ around _from_hash =>  sub {
          $hash->{product_family} = WWW::Chargify::ProductFamily->_from_hash(
               config => $config,
                 http => $http,
-                hash => $hash,
-           overrides => $overrides
+                hash => $product_family_hash,
+           overrides => $overrides,
          );
          $product_families{$pf_id} = $hash->{product_family};
       }

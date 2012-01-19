@@ -10,6 +10,7 @@ use WWW::Chargify::Config;
 use namespace::autoclean;
 with 'WWW::Chargify::Role::Config';
 with 'WWW::Chargify::Role::HTTP';
+with 'WWW::Chargify::Role::SimpleLogger';
 
 =head SYNOPIS
 
@@ -20,6 +21,7 @@ with 'WWW::Chargify::Role::HTTP';
   
   around BUILDARGS => sub {
      my ($orig, $class, %args) = @_;
+     $class->_set_logger( $args{logger} ) if( defined $args{logger} ) ;
      return $class->$orig( config => $args{config} ) if $args{config};
      return $class->$orig( config => WWW::Chargify::Config->new( %args ) );
      

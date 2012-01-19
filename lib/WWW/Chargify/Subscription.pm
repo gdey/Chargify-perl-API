@@ -10,13 +10,8 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
    
    
-   with 'WWW::Chargify::Role::Config';
-   with 'WWW::Chargify::Role::HTTP';
-   with 'WWW::Chargify::Role::FromHash';
-   with 'WWW::Chargify::Role::Find';
-   with 'WWW::Chargify::Role::List'; 
 
-   has id => ( is => 'ro', isa => 'Num', traits => [qw[Chargify::APIAttribute]]);
+   has id => ( is => 'ro', isa => 'Num', traits => [qw[Chargify::APIAttribute]] , predicate => 'has_id');
    has state => ( is => 'ro', isa => 'Str', traits => [qw[Chargify::APIAttribute]] );
    has balance_in_cents => ( is => 'ro', isa => 'Num');
    has current_period_started_at => ( 
@@ -52,6 +47,16 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
    has cancel_at_end_of_period   => ( is => 'ro', isa => 'Bool' );
    has previos_state             => ( is  => 'ro', isa  => 'Str' );
    has coupon_code               => ( is  => 'ro', isa => 'Str' );
+
+   with 'WWW::Chargify::Role::Config';
+   with 'WWW::Chargify::Role::HTTP';
+   with 'WWW::Chargify::Role::FromHash';
+   with 'WWW::Chargify::Role::Find';
+   with 'WWW::Chargify::Role::List'; 
+   with 'WWW::Chargify::Role::SimpleLogger';
+   with 'WWW::Chargify::Role::Destroy';
+
+
    
    sub _hash_key     { 'subscription' };
    sub _resource_key { 'subscriptions' };
@@ -76,6 +81,7 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
              http => $http, 
              hash => $hash->{ WWW::Chargify::Product->_hash_key }
        );
+
        $hash->{ WWW::Chargify::Product->_hash_key } = $product;
 
        if( exists  $hash->{ WWW::Chargify::CreditCard->_hash_key } and 
@@ -182,8 +188,8 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
        if ($customer->has_id) {
          # So we have a customer that already exists in the system! Yay.
-         warn "Customer reference: ".$customer->reference;
-         warn "Customer id: ".$customer->id;
+         info( "Customer reference: ".$customer->reference );
+         info( "Customer id: ".$customer->id );
          $customer->has_reference ?
              ( $hash{customer_reference} = $customer->reference )
            : ( $hash{customer_id} = $customer->id );
@@ -223,7 +229,7 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
       my $http = $self->http;
       my $hash = {
-            product_handle => $to_product->handle,
+            product_id    => $to_product->id,
             include_trial => $include_trial,
             include_initial_charge => $include_initial_charge
       };
@@ -235,6 +241,8 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
       my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => $hash );
       return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
-
    }
+
+
+
 1;

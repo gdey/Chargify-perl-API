@@ -11,6 +11,7 @@ use LWP::UserAgent ();
 use Carp qw(confess);
 use Data::Dumper;
 use namespace::autoclean;
+with 'WWW::Chargify::Role::SimpleLogger';
 
 enum HTTP_METHODS => [qw( HEAD POST PUT GET DELETE )];
 
@@ -66,7 +67,7 @@ sub post {
    my $body = pop @path if ref($path[-1]) eq 'HASH';
    my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/', @path;
-
+   debug('Path: '.$path.'Body: '.Dumper($body) );
 
    $self->make_request( POST => $path, $options // {}, $body // "{}");
 }
@@ -75,6 +76,7 @@ sub put {
    my $body = pop @path if ref($path[-1]) eq 'HASH';
    my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/', grep { defined } @path;
+   debug('Path: '.$path.'Body: '.Dumper($body) );
    $self->make_request( PUT => $path, $options // {}, $body // "{}");
 }
 sub get {
@@ -82,18 +84,22 @@ sub get {
    my ($self, @path) = @_;
    my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/', grep { defined } @path;
+   debug('Path: $path' . "Options: " . Dumper($options));
    $self->make_request( GET => $path, $options);
 }
+
 sub head {
    my ($self, @path) = @_;
    my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/', grep { defined } @path;
    $self->make_request( HEAD => $path, $options);
 }
+
 sub delete {
    my ($self, @path) = @_;
    my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/', grep { defined } @path;
+   debug('Path: $path' . "Options: " . Dumper($options));
    $self->make_request( DELETE => $path, $options);
 }
 
@@ -106,8 +112,8 @@ sub check_response_code {
 
   my $error_type = 'UNKNOWN'; 
 
-	$error_type = 'NotFoundError'         if $code eq '404';
-	$error_type = 'UnprocessableEntity: ' if $code eq '422';
+  $error_type = 'NotFoundError'         if $code eq '404';
+  $error_type = 'UnprocessableEntity: ' if $code eq '422';
   $error_type = 'AuthenticationError'   if $code eq '401';
   $error_type = 'AuthorizationError'    if $code eq '403';
   $error_type = 'ServerError'           if $code eq '500';
@@ -130,6 +136,9 @@ sub make_request {
    $request->headers->authorization_basic(
       $self->config->apiKey,$self->config->apiPass
    );
+   debug("Doing: $method => $base_url");
+   debug("Body: " . Dumper($body)) if $body;
+
    $self->set_body( request => $request, body => $body );
 
    my $content_body = $request->content;
