@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 
-
 use strict;
 use Moose;
 use Test::Exception;
@@ -19,8 +18,11 @@ use_ok("WWW::Chargify::Subscription");
 use_ok("WWW::Chargify::Customer");
 use_ok("WWW::Chargify::Product");
 
+unless ( $ENV{GAUTAM_PLAY} ){
+
 open(SAVEOUT, ">&STDOUT");
 open(STDOUT, ">/dev/null") || warn "Can't redirect stdout";
+}
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  VARIABLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -189,5 +191,5 @@ sub gautam_play {
 
 
 }
-#gautam_play;
+gautam_play if $ENV{GAUTAM_PLAY};
 
