@@ -1,0 +1,6 @@
+
+=h1 Debian Package requirements:
+
+  * libdatetime-format-w3cdtf-perl
+  * libmoosex-types-datetime-perl 
+  * libmoosex-types-lwp-useragent-perl
