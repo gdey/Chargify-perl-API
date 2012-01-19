@@ -74,25 +74,26 @@ sub put {
    my ($self, @path) = @_;
    my $body = pop @path if ref($path[-1]) eq 'HASH';
    my $options = pop @path if ref($path[-1]) eq 'HASH';
-   my $path = join '/',@path;
+   my $path = join '/', grep { defined } @path;
    $self->make_request( PUT => $path, $options // {}, $body // "{}");
 }
 sub get {
+
    my ($self, @path) = @_;
    my $options = pop @path if ref($path[-1]) eq 'HASH';
-   my $path = join '/',@path;
+   my $path = join '/', grep { defined } @path;
    $self->make_request( GET => $path, $options);
 }
 sub head {
    my ($self, @path) = @_;
    my $options = pop @path if ref($path[-1]) eq 'HASH';
-   my $path = join '/',@path;
+   my $path = join '/', grep { defined } @path;
    $self->make_request( HEAD => $path, $options);
 }
 sub delete {
    my ($self, @path) = @_;
    my $options = pop @path if ref($path[-1]) eq 'HASH';
-   my $path = join '/',@path;
+   my $path = join '/', grep { defined } @path;
    $self->make_request( DELETE => $path, $options);
 }
 
@@ -122,6 +123,7 @@ sub make_request {
    my ($self, $method, $path, $options, $body) = @_;
 
    $path .='?'.$self->filter_string($options) if $options;
+
    my $base_url = $self->config->base_url($path);
    my $request = HTTP::Request->new( $method => $base_url );
    $request->header(Accept => 'application/json');

@@ -1,14 +1,7 @@
-BEGIN {
-    use 5.10.0;
-    use MooseX::Declare;
-    use MooseX::Types;
-#    use DateTime;#
-#    class_type 'DateTime';
-};
-
-
-class WWW::Chargify::Customer {
-
+package WWW::Chargify::Customer;
+#class WWW::Chargify::Customer {
+   use Moose;
+   use MooseX::Types;
    use WWW::Chargify;
    use WWW::Chargify::Subscription;
    use WWW::Chargify::Product;
@@ -18,6 +11,7 @@ class WWW::Chargify::Customer {
    use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
    use WWW::Chargify::Utils::DateTime;
    use WWW::Chargify::Utils::Bool;
+#   use namespace::autoclean;
 
    
    has [qw/ first_name last_name email /]   => ( 
@@ -80,17 +74,28 @@ class WWW::Chargify::Customer {
    sub _hash_key     { 'customer' };
    sub _resource_key { 'customers' };
 
-   method find_by_reference( $class: WWW::Chargify::HTTP :$http, Str :$reference ){ 
+   #method find_by_reference( $class: WWW::Chargify::HTTP :$http, Str :$reference ){ 
+   sub find_by_reference {
+      my ($class, %args) = @_;
+      my $http = $args{http};
+      my $reference = $args{reference};
 
       $class->_find_by( http => $http, params => [ lookup => {reference => $reference} ] ) 
 
    }
 
-   method list_by_query( $class: WWW::Chargify::HTTP :$http, Str :$query ){ 
+   #method list_by_query( $class: WWW::Chargify::HTTP :$http, Str :$query ){ 
+   sub list_by_query {
+      my ($class, %args) = @_;
+      my $http = $args{http};
+      my $query = $args{query};
       $class->list(     http => $http, options => { q => $query, commit => 'Search' } ) 
    }
 
-   method subscriptions {
+   #method subscriptions {
+   sub subscriptions {
+
+      my $self = shift;
 
       my $id = $self->id;
       return [] unless $id; # we are not saved.
@@ -110,17 +115,22 @@ class WWW::Chargify::Customer {
 
    }
 
-   method add_subscription( 
-       WWW::Chargify::Product :$product, 
-       WWW::Chargify::CreditCard :$creditcard?, 
-       Str :$coupon_code?,
-       DateTime :$next_billing_at?, Str :$vat_number? ){
+  #method add_subscription( 
+  #     WWW::Chargify::Product :$product, 
+  #     WWW::Chargify::CreditCard :$creditcard?, 
+  #     Str :$coupon_code?,
+  #     DateTime :$next_billing_at?, Str :$vat_number?
+  #     ){
+  sub add_subscription {
+      
+       my ($self, %args) = @_;
+       my $product = $args{product} || confess "product is requried.";
 
        my %hash = (
-          creditcard => $creditcard,
-          next_billing_at => $next_billing_at,
-          vat_number => $vat_number,
-          coupon_code => $coupon_code
+          creditcard => $args{creditcard},
+          next_billing_at => $args{next_billing_at},
+          vat_number => $args{vat_number},
+          coupon_code => $args{coupon_code}
        );
 
        my $newsubscription = WWW::Chargify::Subscription->add_subscription(
@@ -136,4 +146,4 @@ class WWW::Chargify::Customer {
 
    }
 
-}
+1;

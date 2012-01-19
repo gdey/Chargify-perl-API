@@ -32,13 +32,13 @@ with 'WWW::Chargify::Role::HTTP';
 =cut 
   sub products {
       my $self = shift;
-      return WWW::Chargify::Product->list( $self->http );
+      return WWW::Chargify::Product->list( http => $self->http );
   }
 
   sub find_product_by {
       my $self = shift;
       my %args = @_;
-      return WWW::Chargify::Product->find_by( $self->http, @_ );
+      return WWW::Chargify::Product->find_by( http => $self->http, @_ );
 
   }
 

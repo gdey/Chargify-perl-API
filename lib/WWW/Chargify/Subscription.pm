@@ -1,15 +1,12 @@
-use Modern::Perl;
-use MooseX::Declare;
+package WWW::Chargify::Subscription;
+use Moose;
+use DateTime;
+use Data::Dumper;
 
-class WWW::Chargify::Subscription {
-
-   use DateTime;
-   use Data::Dumper;
-
-   use WWW::Chargify::CreditCard;
-   use WWW::Chargify::Customer;
-   use WWW::Chargify::Product;
-   use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
+use WWW::Chargify::CreditCard;
+use WWW::Chargify::Customer;
+use WWW::Chargify::Product;
+use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
    
    
@@ -59,8 +56,16 @@ class WWW::Chargify::Subscription {
    sub _hash_key     { 'subscription' };
    sub _resource_key { 'subscriptions' };
    
-   around _from_hash( $class: WWW::Chargify::Config :$config, 
-                       WWW::Chargify::HTTP :$http, HashRef :$hash, HashRef :$overrides = {} ){
+   #around _from_hash( $class: WWW::Chargify::Config :$config, 
+   #                    WWW::Chargify::HTTP :$http, HashRef :$hash, HashRef :$overrides = {} ){
+   around _from_hash => sub {
+
+       my ($orig, $class, %args) = @_;
+       
+       my $http = $args{http}; 
+       my $config = $args{config};
+       my $hash = $args{hash};
+       my $overrides = $args{overrides} || {};
 
        my $customer_hash = $hash->{ WWW::Chargify::Customer->_hash_key };
        my $customer = WWW::Chargify::Customer->_from_hash( config => $config, http => $http, hash => $customer_hash );
@@ -86,10 +91,12 @@ class WWW::Chargify::Subscription {
 
        return $orig->($class, config => $config, http => $http, hash => $hash, overrides => $overrides);
        
-   }
+   };
    
-   method transactions {
-   
+   #method transactions {
+   sub transactions {
+
+       my $self = shift;
        my $id = $self->id;
        my $config = $self->config;
        my $http = $self->http;
@@ -104,7 +111,9 @@ class WWW::Chargify::Subscription {
    
    }
    
-   method components {
+   #method components {
+   sub components {
+      my $self = shift;
    
       my $id = $self->id;
       my $config = $self->config;
@@ -122,7 +131,11 @@ class WWW::Chargify::Subscription {
    
    }
 
-   method component_by_id(Num $component_id) {
+   #method component_by_id(Num $component_id) {
+   sub component_by_id{
+      my ($self, %args) = @_;
+      my $component_id = $args{component_id} || "component_id is required.";
+
 
       my $id = $self->id;
       my $config = $self->config;
@@ -138,16 +151,26 @@ class WWW::Chargify::Subscription {
 
    }
 
-   method add_subscription( $class: 
+   #method add_subscription( $class: 
 
-         WWW::Chargify::HTTP :$http,
-         WWW::Chargify::Customer :$customer,
-         WWW::Chargify::Product :$product,
-         WWW::Chargify::CreditCard :$creditcard?,
-         Str :$coupon_code?,
-         DateTime :$next_billing_at?,
-         Str :$vat_number? 
-  ){ 
+   #      WWW::Chargify::HTTP :$http,
+   #      WWW::Chargify::Customer :$customer,
+   #      WWW::Chargify::Product :$product,
+   #      WWW::Chargify::CreditCard :$creditcard?,
+   #      Str :$coupon_code?,
+   #      DateTime :$next_billing_at?,
+   #      Str :$vat_number? 
+   #){ 
+   sub add_subscription {
+       my ($class, %args)  = @_;
+
+       my $http = $args{http} || confess "http is required.";
+       my $customer = $args{customer}  || confess "customer is required.";
+       my $product = $args{product} || confess "product is required. ";
+       my $creditcard = $args{creditcard};
+       my $coupon_code = $args{coupon_code};
+       my $next_billing_at = $args{next_billing_at};
+       my $vat_number = $args{vat_number};
 
        # We are going to be creating a new subscription for a customer.
        # Now a customer could be new, in which case, we need to get hash for the customer, 
@@ -176,10 +199,7 @@ class WWW::Chargify::Subscription {
           }
        }
 
-       if( $coupon_code ){
-          $hash{ coupon_code } = $coupon_code;
-       }
-
+       $hash{ coupon_code } = $coupon_code if( $coupon_code );
        $hash{next_billing_at} = DateTime::Format::W3CDTF->new->format_datetime($next_billing_at) if $next_billing_at ;
        $hash{vat_number} = $vat_number if $vat_number;
 
@@ -188,11 +208,18 @@ class WWW::Chargify::Subscription {
        return $class->_from_hash( http => $http, config => $config, hash => $object->{$class->_hash_key} );
    }
 
-   method migrate ( WWW::Chargify::Product :$to_product,
-      Bool :$include_trial=0,
-      Bool :$include_initial_charge=0,
-      Bool :$preview=0
-   ){
+   #method migrate ( WWW::Chargify::Product :$to_product,
+   #   Bool :$include_trial=0,
+   #   Bool :$include_initial_charge=0,
+   #   Bool :$preview=0
+   #){
+   sub migrate {
+      my ($self, %args) = @_;
+
+      my $to_product = $args{to_product} || confess "to_product is required.";
+      my $include_trial  = $args{include_trial} || 0;
+      my $include_initial_charge = $args{include_initial_charge} || 0;
+      my $preview = $args{preview}  || 0;
 
       my $http = $self->http;
       my $hash = {
@@ -210,8 +237,4 @@ class WWW::Chargify::Subscription {
       return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
 
    }
-      
-
-
-
-}
+1;

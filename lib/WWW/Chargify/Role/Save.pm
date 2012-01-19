@@ -1,7 +1,6 @@
-use Modern::Perl;
-use MooseX::Declare;
+package WWW::Chargify::Role::Save;
+use Moose::Role;
 
-role WWW::Chargify::Role::Save {
 
    requires '_to_hash_for_new_update';
    requires '_hash_key';
@@ -11,7 +10,11 @@ role WWW::Chargify::Role::Save {
    requires 'meta';
    requires '_apiName_to_attributeName';
 
-   method _save( HashRef :$hash ) {
+   #method _save( HashRef :$hash ) {
+   sub _save{
+
+      my ($self, %args) = @_;
+      my $hash = $args{hash};
 
       my $meta = $self->meta;
       my %rhash = %{$hash};
@@ -27,7 +30,8 @@ role WWW::Chargify::Role::Save {
       }
 
    }
-   method save {
+   sub save {
+       my $self = shift;
 
        my $meta = $self->meta;
        my $hash = $self->_to_hash_for_new_update();
@@ -41,5 +45,5 @@ role WWW::Chargify::Role::Save {
                  if ( $res_hash and $res_hash->{ $self->_hash_key } );
    }
 
-};
 
+1;

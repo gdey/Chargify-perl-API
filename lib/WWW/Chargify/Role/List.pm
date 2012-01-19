@@ -1,15 +1,19 @@
-use Modern::Perl;
-use MooseX::Declare;
-
-role WWW::Chargify::Role::List {
+package WWW::Chargify::Role::List;
+use Moose::Role;
 
    requires '_from_hash';
    requires '_hash_key';
    requires '_resource_key';
 
-   method list ( $class: WWW::Chargify::HTTP :$http, HashRef :$options? ) {
+   #method list ( $class: WWW::Chargify::HTTP :$http, HashRef :$options? ) {
+   sub list {
 
       return unless defined wantarray;
+
+      my ($class, %args) = @_;
+
+      my $http = $args{http} || confess "http is required.";
+      my $options = $args{options};
 
       my $config = $http->config;
       my $hash_key = $class->_hash_key;
@@ -23,7 +27,5 @@ role WWW::Chargify::Role::List {
       wantarray ? @objects : \@objects;
 
    }
-
-};
 
 1;
