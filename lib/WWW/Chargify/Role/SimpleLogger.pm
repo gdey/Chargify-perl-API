@@ -3,10 +3,27 @@ package WWW::Chargify::Role::SimpleLogger;
 use v5.10.0;
 use Moose::Role;
 use MooseX::Types;
-use Anonymizer::ObjectTypes;
+use Moose::Util::TypeConstraints;
 use Log::Log4perl;
 use strict;
 our $_LOGGER;
+
+subtype 'ValidLogger'
+  => as 'Object'
+  => where {
+      if( UNIVERSAL::can( $_, "debug" ) &&
+          UNIVERSAL::can( $_, "info"  ) &&
+          UNIVERSAL::can( $_, "error" ) &&
+          UNIVERSAL::can( $_, "fatal" ) &&
+          UNIVERSAL::can( $_, "warn"  ) ) {
+          return 1;
+      } else {
+          return 0;
+      }
+      return 1;
+  }
+  => message { "$_  is not a valid ValidLogger" };
+
 
 has logger => ( is      => 'rw', 
                 isa     => "ValidLogger",
