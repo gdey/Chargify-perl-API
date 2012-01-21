@@ -2,6 +2,7 @@ package WWW::Chargify::Role::FromHash;
 use Moose::Role;
 use 5.010_000;
 use feature ();
+use UNIVERSAL;
 
 use WWW::Chargify::Utils::DateTime;
 
@@ -91,6 +92,10 @@ sub _to_hash{
      my $key = $attribute->has_APIAttributeName 
                ?  $attribute->APIAttributeName
                :  $attribute->name;
+     if( UNIVERSAL::isa( $value , "DateTime" ) ) {
+         $hash{$key} = "$value";
+     }
+
      $hash{$key} = $value;
    }
    return wantarray ? %hash : \%hash;

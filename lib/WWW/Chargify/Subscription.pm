@@ -7,46 +7,75 @@ use WWW::Chargify::CreditCard;
 use WWW::Chargify::Customer;
 use WWW::Chargify::Product;
 use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
-
    
    
 
-   has id => ( is => 'ro', isa => 'Num', traits => [qw[Chargify::APIAttribute]] , predicate => 'has_id');
-   has state => ( is => 'ro', isa => 'Str', traits => [qw[Chargify::APIAttribute]] );
-   has balance_in_cents => ( is => 'ro', isa => 'Num');
+   has id                        => ( is => 'ro', isa => 'Num', 
+                                      traits => [qw[Chargify::APIAttribute]] , 
+                                      predicate => 'has_id'
+                                    );
+   has state                     => ( is => 'rw', 
+                                      isa => 'Str', 
+                                      traits => [qw[Chargify::APIAttribute]] 
+                                    );
+   has balance_in_cents          => ( is => 'ro', 
+                                      isa => 'Num'
+                                    );
+
    has current_period_started_at => ( 
-              is => 'ro', 
-              isa => 'DateTime',
-              coerce => 1,
-   );
+                                     is => 'rw', 
+                                     isa => 'DateTime',
+                                     coerce => 1,
+                                    );
    has current_period_ends_at => (
-              is => 'ro', 
-              isa => 'DateTime',
-              coerce => 1,
-   );
+                                  is => 'rw', 
+                                  isa => 'DateTime',
+                                  coerce => 1,
+                                 );
    has next_assessment_at => ( 
-              is => 'ro', 
-              isa => 'DateTime',
-              coerce => 1,
-   );
+                              is => 'ro', 
+                              isa => 'DateTime',
+                              coerce => 1,
+                             );
 
-   has trial_started_at => ( is  => 'ro', isa => 'DateTime', coerce => 1, );
-   has trial_ended_at => ( is => 'ro', isa => 'DateTime', coerce => 1, );
-   has activated_at => ( is => 'ro', isa => 'DateTime', coerce => 1, );
-   has expires_at => (is => 'ro', isa => 'DateTime', coerce => 1, );
-   has created_at => (is => 'ro', isa => 'DateTime', coerce => 1, );
-   has updated_at => (is => 'ro', isa => 'DateTime', coerce => 1, );
-   has canceled_at  => ( is => 'ro', isa => 'DateTime', coerce => 1, );
-   has delayed_cancel_at         =>  ( is => 'ro', isa => 'DateTime', coerce => 1, );
-   has customer => ( is => 'ro', isa => 'WWW::Chargify::Customer' );
-   has product => ( is => 'ro' , isa => 'WWW::Chargify::Product' );
-   has credit_card => ( is => 'ro', isa => 'WWW::Chargify::CreditCard' );
-   has cancellation_message => ( is => 'ro', isa => 'Str' );
-   has signup_revenue => ( is => 'ro', isa => 'Num' );
-   has signup_payment_id => ( is => 'ro', isa => 'Num' );
-   has cancel_at_end_of_period   => ( is => 'ro', isa => 'Bool' );
-   has previos_state             => ( is  => 'ro', isa  => 'Str' );
-   has coupon_code               => ( is  => 'ro', isa => 'Str' );
+   has trial_started_at        => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has trial_ended_at          => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has activated_at            => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has expires_at              => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has created_at              => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has updated_at              => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has canceled_at             => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has delayed_cancel_at       => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has customer                => ( is => 'rw', 
+                                    isa => 'WWW::Chargify::Customer' , 
+                                  );
+
+   has product                 => ( is     => 'rw', 
+                                    isa    => 'WWW::Chargify::Product'  , 
+                                  );
+
+
+
+   has credit_card             => ( is => 'rw', isa => 'WWW::Chargify::CreditCard' );
+   has cancellation_message    => ( is => 'rw', isa => 'Str'  );
+   has signup_revenue          => ( is => 'rw', isa => 'Num'  );
+   has signup_payment_id       => ( is => 'rw', isa => 'Num'  );
+   has cancel_at_end_of_period => ( is => 'rw', isa => 'Bool' );
+   has previous_state          => ( is => 'rw', isa => 'Str'  );
+   has coupon_code             => ( is => 'rw', isa => 'Str'  );
+   has vault_token             => ( is => 'rw', isa => 'Str'  ,  
+                                    traits => [qw/Chargify::APIAttribute/] , 
+                                    isAPIUpdatable => 0
+                                  );
+   has customer_vault_token    => ( is             => 'rw', isa => 'Int' , 
+                                    traits         => [qw/Chargify::APIAttribute/],
+                                    isAPIUpdatable => 0,
+                                  );
+   has next_billing_at         => ( is             => 'rw',
+                                    traits         => [qw/Chargify::APIAttribute/],
+                                    isAPIUpdatable => 1,
+                                  );
+
 
    with 'WWW::Chargify::Role::Config';
    with 'WWW::Chargify::Role::HTTP';
@@ -55,7 +84,7 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
    with 'WWW::Chargify::Role::List'; 
    with 'WWW::Chargify::Role::SimpleLogger';
    with 'WWW::Chargify::Role::Destroy';
-
+   with 'WWW::Chargify::Role::Save';
 
    
    sub _hash_key     { 'subscription' };
@@ -243,6 +272,32 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
       return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
    }
 
+
+   # curl -u $ENV{APIKEY}:x -X PUT "https://$ENV{SUBDOMAIN}.chargify.com/subscriptioF "subscription[id]=1301020" -F "subscription[vault_token]=5436078" -F "subscription[next_billing_at]=2012-02-20T22:40:58
+   around save => sub {
+       my ($orig, $class,%args) = @_;
+       $DB::signal = 1;
+       #print "HERE";
+       $args{hash}     = { $class->_to_hash_for_new_update, %args  };
+       #$args{customer} = WWW::Chargify::Customer->_from_hash( %{$class->customer} );
+       if( $class->has_id ) { 
+           #$DB::signal = 1;
+           $args{hash}->{vault_token} = $class->credit_card->vault_token;
+           delete $args{hash}->{credit_card};
+           delete $args{hash}->{customer} ;
+           $args{hash}->{customer_vault_token} = $class->customer->id;
+           # $args{hash}->{product} = WWW::Chargify::Product->_from_hash
+           #                          ( config => $class->config,
+           #                            http   => $class->http,
+           #                            hash   => $args{hash}->{product} 
+           #                          );
+           $args{hash}->{next_billing_at} = 
+             "$args{hash}->{next_billing_at}" if( $args{hash}->{next_billing_at} );
+           $class->next_billing_at("" . $class->next_billing_at ) if( defined $class->next_billing_at );
+       }
+       #$DB::signal = 1;
+       $orig->($class, %args );
+   };
 
 
 1;
