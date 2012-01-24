@@ -1,5 +1,21 @@
 package WWW::Chargify::CreditCard;
-use Moose;
+
+BEGIN {
+    use Moose;
+    use Moose::Util::TypeConstraints;
+    subtype CreditCardAttributeSet => as 'HashRef';
+    coerce 'CreditCardAttributeSet' => from 'WWW::Chargify::CreditCard' => via {
+        my $obj = $_;
+        my @keys = qw( first_name last_name full_number expiration_month
+                       expiration_year cvv billing_address billing_city
+                       billing_state billing_zip billing_country
+                       vault_token customer_vault_token current_vault
+                       last_four card_type );
+        $DB::signal = 1;
+        my %tmp = map { $_ => $obj->{$_} } grep { defined $obj->{$_} } @keys;
+        \%tmp;
+    };
+};
 no warnings qw/uninitialized/;
 
 #class WWW::Chargify::CreditCard {
@@ -8,6 +24,8 @@ use WWW::Chargify;
 use WWW::Chargify::Customer;
 use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 use namespace::autoclean;
+
+
 
 with 'WWW::Chargify::Role::Config';
 with 'WWW::Chargify::Role::HTTP';

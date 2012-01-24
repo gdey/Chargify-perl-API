@@ -1,12 +1,17 @@
 package WWW::Chargify::Subscription;
 use Moose;
+use MooseX::Params::Validate;
 use DateTime;
 use Data::Dumper;
 
 use WWW::Chargify::CreditCard;
 use WWW::Chargify::Customer;
+use WWW::Chargify::Component;
 use WWW::Chargify::Product;
+use WWW::Chargify::Transaction;
+use WWW::Chargify::Usage;
 use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
+
    
    
 
@@ -51,7 +56,9 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
                                   );
 
    has product                 => ( is     => 'rw', 
-                                    isa    => 'WWW::Chargify::Product'  , 
+                                    isa    => 'WWW::Chargify::Product|Int'  , 
+                                    # traits         => [qw/Chargify::APIAttribute/],
+                                    # isAPIUpdatable => 1,
                                   );
 
 
@@ -63,18 +70,42 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
    has cancel_at_end_of_period => ( is => 'rw', isa => 'Bool' );
    has previous_state          => ( is => 'rw', isa => 'Str'  );
    has coupon_code             => ( is => 'rw', isa => 'Str'  );
-   has vault_token             => ( is => 'rw', isa => 'Str'  ,  
+
+
+
+   has vault_token             => ( is => 'rw', 
+                                    isa => 'Str'  ,  
                                     traits => [qw/Chargify::APIAttribute/] , 
-                                    isAPIUpdatable => 0
+                                    isAPIUpdatable => 1
                                   );
-   has customer_vault_token    => ( is             => 'rw', isa => 'Int' , 
+   has customer_vault_token    => ( is             => 'rw', 
+                                    isa            => 'Int' , 
                                     traits         => [qw/Chargify::APIAttribute/],
-                                    isAPIUpdatable => 0,
+                                    isAPIUpdatable => 1,
                                   );
+
+   has credit_card_attributes  => ( is             => 'rw',
+                                       isa            => 'CreditCardAttributeSet',
+                                       traits         => [qw/Chargify::APIAttribute/],
+                                       isAPIUpdatable => 1,
+                                       coerce         => 1
+                                     );
+
    has next_billing_at         => ( is             => 'rw',
                                     traits         => [qw/Chargify::APIAttribute/],
                                     isAPIUpdatable => 1,
                                   );
+   has product_handle          => ( is             => 'rw',
+                                    traits         => [qw/Chargify::APIAttribute/],
+                                    isAPIUpdatable => 1,
+                                  );
+
+   has component               => ( is             => 'rw',
+                                    isa            => 'WWW::Chargify::Component',
+                                    traits         => [qw/Chargify::APIAttribute/],
+                                    isAPIUpdatable => 1,
+                                  );
+
 
 
    with 'WWW::Chargify::Role::Config';
@@ -158,13 +189,18 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
       my $component_resource_key = WWW::Chargify::Component->_resource_key;
    
       my ($objects, $response) = $http->get($resource_key,$id,$component_resource_key);
-      return map { WWW::Chargify::Transaction->_from_hash( 
-         config => $config, 
-           http => $http,
-           hash => $_{$component_hash_key } 
-      ) } @{$objects};
-   
-   }
+
+      return  map { WWW::Chargify::Component->_from_hash
+                   (
+                    config => $config,
+                    http => $http,
+                    hash => { %{$_->{$component_hash_key }},
+                              id => $_->{$component_hash_key}->{component_id}
+                            } 
+                   ) 
+               } @{$objects}; 
+
+   }  
 
    #method component_by_id(Num $component_id) {
    sub component_by_id{
@@ -185,6 +221,50 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
              hash => $object->{$component_hash_key } ) ;
 
    }
+
+   ## Adds the component to the object in question
+   #
+   sub add_usage_for_component {
+       my ($class, %args ) =  validated_hash( \@_,
+                                              component => { isa => 'WWW::Chargify::Component' },
+                                              quantity  => { isa => 'Int'},
+                                              memo      => { isa => 'Str' },
+                                            );
+       my ($object, $response ) = $class->http->post
+                                  ( $class->_resource_key, 
+                                    $class->id, 
+                                    components => $args{component}->id, 
+                                    usages => { usage => { quantity => $args{quantity} , memo => $args{memo} } 
+                                              }
+                                  );
+   }
+
+   sub usage_for_component {
+       my ($class, %args )  = validated_hash
+                              (\@_,
+                               component => { isa => 'WWW::Chargify::Component'}
+                              );
+        my ($object, $response ) = $class->http->get
+                                                 ( $class->_resource_key, 
+                                                   $class->id, 
+                                                   components => $args{component}->id, 
+                                                 );
+
+       return WWW::Chargify::Usage->_from_hash
+              (
+               config => $class->config,
+               http   => $class->http,
+               hash   => { %{$object->{$args{component}->_hash_key}} },
+              );
+   }
+
+   #
+   #
+   sub usages {
+       my ($class) = @_;
+       
+   }
+
 
    #method add_subscription( $class: 
 
@@ -274,28 +354,36 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
 
    # curl -u $ENV{APIKEY}:x -X PUT "https://$ENV{SUBDOMAIN}.chargify.com/subscriptioF "subscription[id]=1301020" -F "subscription[vault_token]=5436078" -F "subscription[next_billing_at]=2012-02-20T22:40:58
+
+
    around save => sub {
        my ($orig, $class,%args) = @_;
-       $DB::signal = 1;
-       #print "HERE";
-       $args{hash}     = { $class->_to_hash_for_new_update, %args  };
-       #$args{customer} = WWW::Chargify::Customer->_from_hash( %{$class->customer} );
+       my $meta = $class->meta;
+
        if( $class->has_id ) { 
-           #$DB::signal = 1;
-           $args{hash}->{vault_token} = $class->credit_card->vault_token;
-           delete $args{hash}->{credit_card};
-           delete $args{hash}->{customer} ;
-           $args{hash}->{customer_vault_token} = $class->customer->id;
-           # $args{hash}->{product} = WWW::Chargify::Product->_from_hash
-           #                          ( config => $class->config,
-           #                            http   => $class->http,
-           #                            hash   => $args{hash}->{product} 
-           #                          );
+
            $args{hash}->{next_billing_at} = 
              "$args{hash}->{next_billing_at}" if( $args{hash}->{next_billing_at} );
-           $class->next_billing_at("" . $class->next_billing_at ) if( defined $class->next_billing_at );
+           $class->next_billing_at("" . $class->next_billing_at ) 
+             if( defined $class->next_billing_at );
+           
+           # We would like the product to be replaced by it's integer
+           if( defined $class->product->id ) { 
+               $class->product_handle(  $class->product->handle );
+           } 
+           # Determine if there isn't a change
+           if( defined $class->customer->id ) { 
+               $class->customer_vault_token( $class->customer->id );
+           }
+
+           if( !defined $class->credit_card->id ) {
+
+               $class->credit_card_attributes( 
+                                              $class->credit_card
+                                             )
+           }
        }
-       #$DB::signal = 1;
+
        $orig->($class, %args );
    };
 

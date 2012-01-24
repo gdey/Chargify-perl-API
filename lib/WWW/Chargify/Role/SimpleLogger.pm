@@ -8,7 +8,7 @@ use Log::Log4perl;
 use strict;
 our $_LOGGER;
 
-subtype 'ValidLogger'
+subtype 'ValidLoggerObject'
   => as 'Object'
   => where {
       if( UNIVERSAL::can( $_, "debug" ) &&
@@ -22,11 +22,11 @@ subtype 'ValidLogger'
       }
       return 1;
   }
-  => message { "$_  is not a valid ValidLogger" };
+  => message { "$_  is not a valid ValidLoggerObject" };
 
 
 has logger => ( is      => 'rw', 
-                isa     => "ValidLogger",
+                isa     => "ValidLoggerObject",
                 lazy    => 0,
                 builder => "_build_logger"
               ); 

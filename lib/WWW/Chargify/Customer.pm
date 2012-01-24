@@ -115,13 +115,7 @@ package WWW::Chargify::Customer;
 
    }
 
-  #method add_subscription( 
-  #     WWW::Chargify::Product :$product, 
-  #     WWW::Chargify::CreditCard :$creditcard?, 
-  #     Str :$coupon_code?,
-  #     DateTime :$next_billing_at?, Str :$vat_number?
-  #     ){
-  sub add_subscription {
+   sub add_subscription {
       
        my ($self, %args) = @_;
        my $product = $args{product} || confess "product is requried.";
