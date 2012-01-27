@@ -30,8 +30,8 @@ sub _from_hash {
                grep { defined $hash->{$_} } 
                keys %{$hash};
   $pruned{$_} = $overrides->{$_} foreach keys %{$overrides};
-	return $class->new(config => $config, http => $http, %pruned);
-	
+	my $class_new = $class->new(config => $config, http => $http, %pruned);
+  return $class_new;
 	
 };
 

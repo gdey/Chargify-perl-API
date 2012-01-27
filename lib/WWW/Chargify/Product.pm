@@ -18,27 +18,27 @@ with 'WWW::Chargify::Role::List';
 with 'WWW::Chargify::Role::Find';
 
     
-has name            => ( is => 'ro', isa => 'Str', required => 1 );
-has handle          => ( is => 'ro', isa => 'Str', required => 1 );
-has description     => ( is => 'ro', isa => 'Str', required => 1 );
-has accounting_code => ( is => 'ro', isa => 'Str', required => 1 );
-has interval_unit   => ( is => 'ro', isa => 'Str', required => 1 );
-has interval        => ( is => 'ro', isa => 'Str' );
-has trial_interval  => ( is => 'ro', isa => 'Num' );
-has return_url      => ( is => 'ro', isa => 'Str' );
-has return_params   => ( is => 'ro', isa => 'Str' );
-has created_at      => ( is => 'ro', isa => 'DateTime', coerce => 1 );
-has updated_at      => ( is => 'ro', isa => 'DateTime', coerce => 1 );
-has archived_at     => ( is => 'ro', isa => 'DateTime', coerce => 1 );
-has trial_interval_unit  => ( is => 'ro', isa => 'Str' );
-has expiration_interval  => ( is => 'ro', isa => 'Num' );
-has required_credit_card => ( is => 'ro', isa => 'Bool', coerce => 1 );
-has request_credit_card  => ( is => 'ro', isa => 'Bool', coerce => 1 );
+has name                     => ( is => 'ro', isa => 'Str', required => 1 );
+has handle                   => ( is => 'ro', isa => 'Str', required => 1 );
+has description              => ( is => 'ro', isa => 'Str', required => 1 );
+has accounting_code          => ( is => 'ro', isa => 'Str', required => 1, default => '' );
+has interval_unit            => ( is => 'ro', isa => 'Str', required => 1 );
+has interval                 => ( is => 'ro', isa => 'Str' );
+has trial_interval           => ( is => 'ro', isa => 'Num', default => 0 );
+has return_url               => ( is => 'ro', isa => 'Str' );
+has return_params            => ( is => 'ro', isa => 'Str' );
+has created_at               => ( is => 'ro', isa => 'DateTime', coerce => 1 );
+has updated_at               => ( is => 'ro', isa => 'DateTime', coerce => 1 );
+has archived_at              => ( is => 'ro', isa => 'DateTime', coerce => 1 );
+has trial_interval_unit      => ( is => 'ro', isa => 'Str' );
+has expiration_interval      => ( is => 'ro', isa => 'Num', default => 0 );
+has required_credit_card     => ( is => 'ro', isa => 'Bool', coerce => 1 );
+has request_credit_card      => ( is => 'ro', isa => 'Bool', coerce => 1 );
 has expiration_interval_unit => ( is => 'ro', isa => 'Str' );
-has initial_charge_in_cents  => ( is => 'ro', isa => 'Num' );
-has trial_price_in_cents     => ( is => 'ro', isa => 'Num' );
-has id => ( is => 'ro', isa => 'Num' );
-has product_family  => ( is => 'ro', isa => 'WWW::Chargify::ProductFamily', required => 1 );
+has initial_charge_in_cents  => ( is => 'ro', isa => 'Num', default => 0 );
+has trial_price_in_cents     => ( is => 'ro', isa => 'Num', default => 0 );
+has id                       => ( is => 'ro', isa => 'Num', predicate => 'has_id' );
+has product_family           => ( is => 'ro', isa => 'WWW::Chargify::ProductFamily', required => 1 );
 
 sub _hash_key     { 'product' };
 sub _resource_key { 'products' };
@@ -50,6 +50,14 @@ sub _resource_key { 'products' };
 around _from_hash =>  sub {
 
     my ($orig, $class, %args) = @_;
+    # For some reason we are getting a warning of 
+    #  '' is not numberic used with == warning.
+    #  This warning does not seem to effect anything, 
+    #   so, for this function, we are disabling the 
+    #   warning.
+    # Probally should use no warning 
+    local $SIG{__WARN__} = sub {;}; # set it to a noop.
+  
 
     my $http = $args{http} || confess 'http is required.';
     my $hash = $args{hash} || confess 'hash is requried.';
@@ -72,7 +80,7 @@ around _from_hash =>  sub {
          $product_families{$pf_id} = $hash->{product_family};
       }
     };
-   return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );
+    return $orig->($class, http => $http, config => $config, hash => $hash, overrides => $overrides );
 };
 }
 
