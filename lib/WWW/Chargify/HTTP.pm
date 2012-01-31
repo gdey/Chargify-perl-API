@@ -25,17 +25,39 @@ has userAgent => (
        builder => '_build_user_agent'
 );
 
+has extra_headers => (
+       traits => ['Hash'],
+       is => 'ro',
+       isa => 'HashRef[Str]',
+       default => sub { {} },
+       handles => {
+          set_extra_header => 'set',
+          get_extra_header => 'get',
+          has_no_extra_headers => 'is_empty',
+          has_extra_headers => 'count',
+          extra_header_keys => 'keys',
+          extra_header_values => 'values',
+          extra_header_pairs => 'kv',
+          clear_extra_headers => 'clear',
+          all_extra_headers => 'elements',
+       }
+
+);
+
 sub _build_user_agent {
    my $self = shift;
    my $ua = LWP::UserAgent->new( agent => 'chargify-perl/0.0.1' );
    return $ua;
 }
 
+
 sub set_body {
 
    my ($self, %args ) = @_;
+   use Data::Dumper;
    my $request = $args{request};
    my $body = $args{body};
+   local $SIG{__WARN__} = sub {print "Got warning for the following body: ".Dumper($body)."\n"}; # set it to a noop.
    $request->headers->content_type('application/json; charset=utf-8');
    return unless $body;
    my $json = encode_json $body;
@@ -126,6 +148,7 @@ sub check_response_code {
 
 sub make_request {
 
+
    my ($self, $method, $path, $options, $body) = @_;
 
    $path .='?'.$self->filter_string($options) if $options;
@@ -133,6 +156,11 @@ sub make_request {
    my $base_url = $self->config->base_url($path);
    my $request = HTTP::Request->new( $method => $base_url );
    $request->header(Accept => 'application/json');
+   if( $self->has_extra_headers ){
+      foreach my $pair ( $self->extra_header_pairs ) {
+         $request->header( $pair->[0] => $pair->[1] );
+      }
+   }
    $request->headers->authorization_basic(
       $self->config->apiKey,$self->config->apiPass
    );
