@@ -43,6 +43,37 @@ $chargify->logger->level( $loglevel );
 $account = $chargify->find_customer_by_reference( $ENV{TESTUSER_COMPONENT} );
 
 @user_subs = grep { $_->state eq "active" } $account->subscriptions;
+if( ! @user_subs ) {
+    my $cc      = (first {1}  $account->subscriptions)->credit_card;
+    my $product = first { $_->handle eq $ENV{TEST_MIGRATE_USAGE_PRODUCT}}  $chargify->products;
+    eval { 
+    $account->add_subscription( 
+                               product            => $product,
+                               creditcard         => $cc, 
+                              );
+    };
+    if( $@ =~ /Customer Profile ID or Customer Payment Profile ID not found/) {
+        $account->add_subscription( 
+                                   product            => $product,
+                                   creditcard => WWW::Chargify::CreditCard->new
+                                   (
+                                    config           => $chargify->config,
+                                    billing_address  => "123 Billing St",
+                                    billing_address2 => "#2",
+                                    billing_city     => "San Diego",
+                                    billing_country  => "US",
+                                    billing_state    => "CA",
+                                    billing_zip      => "92104",
+                                    cvv              => "123",
+                                    expiration_month => "09",
+                                    expiration_year  => DateTime->now->year + 1,
+                                    full_number      => "4111111111111111"
+                                   ),
+                                  );
+        @user_subs = grep { $_->state eq "active" } $account->subscriptions;
+    }
+}
+
 $orig = $user_subs[0]->product->id ;
 if ( 1 ) { 
 lives_ok {

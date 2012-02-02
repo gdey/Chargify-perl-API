@@ -121,10 +121,11 @@ package WWW::Chargify::Customer;
        my $product = $args{product} || confess "product is requried.";
 
        my %hash = (
-          creditcard => $args{creditcard},
-          next_billing_at => $args{next_billing_at},
-          vat_number => $args{vat_number},
-          coupon_code => $args{coupon_code}
+          creditcard         => $args{creditcard},
+          next_billing_at    => $args{next_billing_at},
+          vat_number         => $args{vat_number},
+          coupon_code        => $args{coupon_code},
+          payment_profile_id => $args{payment_profile_id},
        );
        my $newsubscription = 
                WWW::Chargify::Subscription->add_subscription(

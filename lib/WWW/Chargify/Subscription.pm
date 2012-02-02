@@ -279,13 +279,13 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
    sub add_subscription {
        my ($class, %args)  = @_;
 
-       my $http = $args{http} || confess "http is required.";
-       my $customer = $args{customer}  || confess "customer is required.";
-       my $product = $args{product} || confess "product is required. ";
-       my $creditcard = $args{creditcard};
-       my $coupon_code = $args{coupon_code};
+       my $http            = $args{http} || confess "http is required.";
+       my $customer        = $args{customer}  || confess "customer is required.";
+       my $product         = $args{product} || confess "product is required. ";
+       my $creditcard      = $args{creditcard};
+       my $coupon_code     = $args{coupon_code};
        my $next_billing_at = $args{next_billing_at};
-       my $vat_number = $args{vat_number};
+       my $vat_number      = $args{vat_number};
 
        # We are going to be creating a new subscription for a customer.
        # Now a customer could be new, in which case, we need to get hash for the customer, 
@@ -308,7 +308,7 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
 
        if( $creditcard ){
           if( $creditcard->has_id ){
-             $hash{ payment_profile_id } = $creditcard->payment_profile_id;
+             $hash{ payment_profile_id } = $creditcard->id;
           } else {
              $hash{ payment_profile_attributes } = $creditcard->_to_hash_for_new_update;
           }
