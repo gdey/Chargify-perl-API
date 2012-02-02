@@ -8,6 +8,7 @@
 use strict;
 use Test::More ;
 use Test::Exception;
+use Log::Log4perl;
 
 use_ok("WWW::Chargify");
 use_ok("WWW::Chargify::Subscription");

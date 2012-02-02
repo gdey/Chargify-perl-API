@@ -4,8 +4,7 @@ use v5.10.0;
 use Moose;
 use Moose::Util::TypeConstraints;
 use MooseX::Types::LWP::UserAgent qw(UserAgent);
-
-use JSON;
+use WWW::Chargify::Role::JsonWrap;
 use HTTP::Request;
 use LWP::UserAgent ();
 use Carp qw(confess);
