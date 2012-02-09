@@ -109,5 +109,15 @@ sub price_in_dollars {
   return $self->price_in_cents * 100;
 
 };
+
+sub interval_string {
+
+   my ($self ) = @_;
+
+   my ($interval_unit,$interval) = ($self->interval_unit, $self->interval);
+
+   
+}
+
 1;
 
