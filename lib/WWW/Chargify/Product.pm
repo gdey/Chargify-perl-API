@@ -106,7 +106,7 @@ sub find_by {
 sub price_in_dollars {
 
   my ($self, %args) = @_;
-  return $self->price_in_cents * 100;
+  return $self->price_in_cents / 100;
 
 };
 
