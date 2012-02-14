@@ -58,6 +58,7 @@ use Moose::Role;
 
        $self->_save( hash => $res_hash->{ $self->_hash_key } )
                  if ( $res_hash and $res_hash->{ $self->_hash_key } );
+       return wantarray? (undef, $response) : undef;
    }
    sub _camel_case_class { 
        my ($tmp) = @_; 

@@ -37,6 +37,7 @@ has request_credit_card      => ( is => 'ro', isa => 'Bool', coerce => 1 );
 has expiration_interval_unit => ( is => 'ro', isa => 'Str' );
 has initial_charge_in_cents  => ( is => 'ro', isa => 'Num', default => 0 );
 has trial_price_in_cents     => ( is => 'ro', isa => 'Num', default => 0 );
+has price_in_cents           => ( is => 'ro', isa => 'Num', default => 0 );
 has id                       => ( is => 'ro', isa => 'Num', predicate => 'has_id' );
 has product_family           => ( is => 'ro', isa => 'WWW::Chargify::ProductFamily', required => 1 );
 
@@ -101,5 +102,22 @@ sub find_by {
           if( exists $args{handle} );
    return undef;
 }
+
+sub price_in_dollars {
+
+  my ($self, %args) = @_;
+  return $self->price_in_cents / 100;
+
+};
+
+sub interval_string {
+
+   my ($self ) = @_;
+
+   my ($interval_unit,$interval) = ($self->interval_unit, $self->interval);
+
+   
+}
+
 1;
 
