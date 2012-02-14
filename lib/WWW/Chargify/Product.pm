@@ -95,7 +95,9 @@ sub find_by_handle {
 
 sub find_by {
    
-   my ($class, $http, %args) = @_;
+   my ($class, %args) = @_;
+   my $http = $args{http};
+   return unless $http;
    return $class->_find_by(http => $http, params => [ $args{id} ]) 
           if( exists $args{id} );
    return $class->_find_by(http => $http, params => [ handle => lc($args{handle}) ]) 
