@@ -47,7 +47,7 @@ log4perl.appender.BasicPrintScreen.ConversionPattern = %n
 log4perl.logger.main = ERROR
 |;
     my $tmplogger;
-    #$DB::signal = 1;
+
     if ( ! defined __PACKAGE__->_get_logger() ) {
         eval { 
             Log::Log4perl->init_once(\$log_conf);

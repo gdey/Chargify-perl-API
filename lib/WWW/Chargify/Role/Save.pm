@@ -31,7 +31,7 @@ use Moose::Role;
    sub _determine_type {
        my ($self, $key, $value ) = @_;
        if( ref $value eq "HASH" ) { 
-           #$DB::signal = 1;
+
            my $objtype = _camel_case_class( $key );
              return "WWW::Chargify::${objtype}"->_from_hash 
                                                 (  
@@ -51,7 +51,7 @@ use Moose::Role;
        my $hash = $self->_to_hash_for_new_update();
 
        # if there is an id, we need to put, otherwise we need to post.
-       #$DB::signal = 1;
+
        my ($res_hash, $response) = $self->has_id 
                                  ? $self->http->put(  $self->_resource_key, $self->id, { $self->_hash_key => $hash } )
                                  : $self->http->post( $self->_resource_key,            { $self->_hash_key => $hash } );

@@ -11,7 +11,7 @@ BEGIN {
                        billing_state billing_zip billing_country
                        vault_token customer_vault_token current_vault
                        last_four card_type );
-        $DB::signal = 1;
+
         my %tmp = map { $_ => $obj->{$_} } grep { defined $obj->{$_} } @keys;
         \%tmp;
     };

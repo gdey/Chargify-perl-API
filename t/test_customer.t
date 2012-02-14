@@ -79,9 +79,11 @@ $cust->reference( $userid );
 $cust->state("CA");
 $cust->zip("92104");
 
-throws_ok { 
+eval { 
     $cust->save();
-} qr/Reference: must be unique/, "Correctly has issues saving (duplicate)";
+};
+isa_ok( $@, 'WWW::Chargify::Exception', "Received correct exception" );
+
 
 #find the user and update its shipping address
 $cust = $chargify->find_customer_by_reference( $userid );
