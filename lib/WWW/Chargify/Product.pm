@@ -32,7 +32,7 @@ has updated_at               => ( is => 'ro', isa => 'DateTime', coerce => 1 );
 has archived_at              => ( is => 'ro', isa => 'DateTime', coerce => 1 );
 has trial_interval_unit      => ( is => 'ro', isa => 'Str' );
 has expiration_interval      => ( is => 'ro', isa => 'Num', default => 0 );
-has required_credit_card     => ( is => 'ro', isa => 'Bool', coerce => 1 );
+has require_credit_card      => ( is => 'ro', isa => 'Bool', coerce => 1 );
 has request_credit_card      => ( is => 'ro', isa => 'Bool', coerce => 1 );
 has expiration_interval_unit => ( is => 'ro', isa => 'Str' );
 has initial_charge_in_cents  => ( is => 'ro', isa => 'Num', default => 0 );
