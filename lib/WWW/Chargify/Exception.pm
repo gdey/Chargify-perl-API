@@ -6,7 +6,9 @@ use strict;
 use Moose;
 use JSON ();
 use overload 
-  '""' => \&to_s;
+    '""' => \&to_s,
+    'ne' => sub { return ! str_compare(@_)},
+    'eq' => \&str_compare;
 
 has 'response'   => ( is => 'ro', isa => 'HTTP::Response'       );
 has 'errors'     => ( is => 'rw', isa => 'ArrayRef[Str]|Undef'  );
@@ -25,7 +27,11 @@ sub to_s {
     } else {
         $errors = "";
     }
-    print $self->type . " (" . $self->code . ") : $errors";
+    $self->type . " (" . $self->code . ") : $errors";
 }
+sub str_compare { 
+    return "$_[0]" eq "$_[1]";
+}
+
 
 1;
