@@ -113,12 +113,9 @@ sub price_in_dollars {
 };
 
 sub interval_string {
-
    my ($self ) = @_;
-
    my ($interval_unit,$interval) = ($self->interval_unit, $self->interval);
-
-   
+   return "$interval_unit $interval";
 }
 
 1;
