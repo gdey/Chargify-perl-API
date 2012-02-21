@@ -114,6 +114,10 @@ package WWW::Chargify::Customer;
       ) } @{$objects};
 
    }
+   sub active_subscriptions {
+       my ($self) = @_;
+       return grep {$_->state eq "active" } $self->subscriptions;
+   }
 
    sub add_subscription {
       
