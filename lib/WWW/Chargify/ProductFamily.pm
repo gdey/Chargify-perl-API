@@ -4,6 +4,7 @@ use Moose;
 use MooseX::Types::DateTime qw(DateTime);
 use WWW::Chargify::HTTP;
 use WWW::Chargify::Component;
+use WWW::Chargify::Coupon;
 
 with 'WWW::Chargify::Role::Config';
 with 'WWW::Chargify::Role::HTTP';
@@ -69,6 +70,16 @@ sub components {
       my $component = $_->{component};
       WWW::Chargify::Component->_from_hash( config => $config, http => $http, hash => $component );
    } @$components_json;
+}
+
+sub coupons {
+    my $self = shift;
+    WWW::Chargify::Coupon->list( http => $self->http , options => { product_family_id => $self->id } );
+}
+
+sub active_coupons {
+    my $self = shift;
+    grep { !defined $_->archived_at  } $self->coupons();
 }
 
 #method find_component_by_id( Num $component_id ) {

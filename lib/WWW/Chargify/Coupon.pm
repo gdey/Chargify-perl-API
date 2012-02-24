@@ -21,6 +21,12 @@ use namespace::clean;
       }
    );
 
+   has archived_at => (
+      is => 'rw',
+      isa => 'DateTime',
+      coerce => 1,
+   );
+
    has amount => (
       traits => [qw/Chargify::APIAttribute/],
       is => 'rw',
