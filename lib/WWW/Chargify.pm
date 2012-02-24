@@ -39,10 +39,14 @@ with 'WWW::Chargify::Role::SimpleLogger';
 
   sub find_product_by {
       my $self = shift;
-      my %args = @_;
       return WWW::Chargify::Product->find_by( http => $self->http, @_ );
-
   }
+
+  sub find_coupon_by {
+      my ($self,@args) = @_;
+      return WWW::Chargify::Coupon->list( http => $self->http , @args);
+  }
+
 
   sub product_families { return WWW::Chargify::ProductFamily->list( http => shift->http ); }
 

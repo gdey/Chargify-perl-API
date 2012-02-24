@@ -40,10 +40,18 @@ use namespace::clean;
       default => sub { 0 },
    );
 
+   # has product_family_id => ( 
+   #    is  => 'rw',
+   #    isa => 'Int'                       
+   #                           );
+
+
 with 'WWW::Chargify::Role::SimpleLogger';
 with 'WWW::Chargify::Role::Config';
 with 'WWW::Chargify::Role::HTTP';
+with 'WWW::Chargify::Role::FromHash';
 with 'WWW::Chargify::Role::List';
+
 
 
 sub _hash_key     { 'coupon' };
