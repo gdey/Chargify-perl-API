@@ -11,8 +11,7 @@ use WWW::Chargify::Product;
 use WWW::Chargify::Transaction;
 use WWW::Chargify::Usage;
 use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
-
-   
+use WWW::Chargify::Migration;
    
 
    has id                        => ( is => 'ro', isa => 'Num', 
@@ -238,7 +237,6 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
                                               }
                                   );
    }
-
    sub usage_for_component {
        my ($class, %args )  = validated_hash
                               (\@_,
@@ -257,6 +255,29 @@ use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
                hash   => { %{$object->{$args{component}->_hash_key}} },
               );
    }
+   
+   # Migrates subscription on Chargify
+   sub add_migration { 
+       my ($class,%args) = validated_hash(\@_,
+                                          migration => { isa => 'WWW::Chargify::Migration' }
+                                         );
+       my ($object,$response) = $class->http->post( 
+                                                  $class->_resource_key,
+                                                  $class->id, 
+                                                   migrations => {
+                                                                  migration => { 
+                                                                                $args{migration}->_to_hash,
+                                                                               }
+                                                                 }
+                                                  );
+       return WWW::Chargify::Subscription->_from_hash
+              (
+               config => $class->config,
+               http   => $class->http,
+               hash   => { %{$object->{$class->_hash_key}}},
+              );
+   }
+
 
    #
    #
