@@ -4,7 +4,7 @@ use Moose::Role;
    requires '_resource_key';
    requires 'id';
    
-   sub cancel { goto &destroy; }
+   sub cancel { shift->destroy(@_) }
 
    sub destroy {
        my $self = shift;

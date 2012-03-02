@@ -66,12 +66,8 @@ use WWW::Chargify::Migration;
    has cancellation_message    => ( is => 'rw', isa => 'Str'  );
    has signup_revenue          => ( is => 'rw', isa => 'Num'  );
    has signup_payment_id       => ( is => 'rw', isa => 'Num'  );
-   has cancel_at_end_of_period => ( is => 'rw', isa => 'Bool' );
    has previous_state          => ( is => 'rw', isa => 'Str'  );
    has coupon_code             => ( is => 'rw', isa => 'Str'  );
-
-
-
    has vault_token             => ( is => 'rw', 
                                     isa => 'Str'  ,  
                                     traits => [qw/Chargify::APIAttribute/] , 
@@ -82,14 +78,12 @@ use WWW::Chargify::Migration;
                                     traits         => [qw/Chargify::APIAttribute/],
                                     isAPIUpdatable => 1,
                                   );
-
    has credit_card_attributes  => ( is             => 'rw',
                                        isa            => 'CreditCardAttributeSet',
                                        traits         => [qw/Chargify::APIAttribute/],
                                        isAPIUpdatable => 1,
                                        coerce         => 1
                                      );
-
    has next_billing_at         => ( is             => 'rw',
                                     traits         => [qw/Chargify::APIAttribute/],
                                     isAPIUpdatable => 1,
@@ -98,15 +92,16 @@ use WWW::Chargify::Migration;
                                     traits         => [qw/Chargify::APIAttribute/],
                                     isAPIUpdatable => 1,
                                   );
-
    has component               => ( is             => 'rw',
                                     isa            => 'WWW::Chargify::Component',
                                     traits         => [qw/Chargify::APIAttribute/],
                                     isAPIUpdatable => 1,
                                   );
-
-
-
+   has cancel_at_end_of_period => ( is => 'rw', 
+                                        isa => 'Bool', 
+                                        default => 0, 
+                                        traits => [qw/Chargify::APIAttribute/],
+                                        );
    with 'WWW::Chargify::Role::Config';
    with 'WWW::Chargify::Role::HTTP';
    with 'WWW::Chargify::Role::FromHash';
