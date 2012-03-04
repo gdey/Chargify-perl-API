@@ -67,7 +67,7 @@ use WWW::Chargify::Migration;
 
 
 
-   has credit_card             => ( is => 'rw', isa => 'WWW::Chargify::CreditCard' );
+   has credit_card             => ( is => 'rw', isa => 'WWW::Chargify::CreditCard', predicate => 'has_credit_card' );
    has cancellation_message    => ( is => 'rw', isa => 'Str'  );
    has signup_revenue          => ( is => 'rw', isa => 'Num'  );
    has signup_payment_id       => ( is => 'rw', isa => 'Num'  );

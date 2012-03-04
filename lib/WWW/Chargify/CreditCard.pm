@@ -23,6 +23,7 @@ no warnings qw/uninitialized/;
 use WWW::Chargify;
 use WWW::Chargify::Customer;
 use WWW::Chargify::Meta::Attribute::Trait::APIAttribute;
+use DateTime;
 use namespace::autoclean;
 
 
@@ -82,8 +83,20 @@ has [qw[ expiration_month expiration_year ]] => (
 
 
 sub _hash_key { 'credit_card' };
-   
 sub customer { my $self = shift;  WWW::Chargify::Customer->find_by_id( http => $self->http, id => $self->customer_id ) }
+
+sub expire_date {
+   my $self = shift;
+   return DateTime->new(
+      year => $self->expiration_year,
+      month => $self->expiration_month
+   );
+}
+sub is_expired {
+   my $self = shift;
+   return DateTime->compare( DateTime->now, $self->expire_date ) == 1;
+}
+
 
 #}
 1;

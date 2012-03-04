@@ -107,7 +107,9 @@ package WWW::Chargify::Customer;
       my $subscription_resource_key = WWW::Chargify::Subscription->_resource_key;
 
       my ($objects, $response) = $http->get($resource_key,$id,$subscription_resource_key);
-      return map { WWW::Chargify::Subscription->_from_hash( 
+      return sort {
+        $b->id <=> $a->id
+      } map { WWW::Chargify::Subscription->_from_hash( 
          config => $config, 
            http => $http, 
            hash => $_->{$subscription_hash_key}  
@@ -123,7 +125,6 @@ package WWW::Chargify::Customer;
       
        my ($self, %args) = @_;
        my $product = $args{product} || confess "product is requried.";
-
        my %hash = (
           creditcard         => $args{creditcard},
           next_billing_at    => $args{next_billing_at},
@@ -142,6 +143,23 @@ package WWW::Chargify::Customer;
        $self->_save( hash => $chash );
        return $self;
 
+   }
+
+   sub all_credit_cards {
+       my $self = shift;
+       return map { $_->credit_card } grep {
+          defined $_->has_credit_card
+       } $self->subscriptions
+   }
+   sub credit_cards {
+       my $self = shift;
+       return grep { !$_->is_expired } $self->all_credit_cards;
+   }
+
+   sub credit_card {
+      my $self = shift;
+      my ($cc, @i) = $self->credit_cards;
+      return $cc;
    }
 
 1;
