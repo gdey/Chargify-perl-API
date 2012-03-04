@@ -13,11 +13,22 @@ my $cust;
 
 no warnings;
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+BEGIN{
+  use Test::More;
+  use Test::Exception;
 
-use_ok("WWW::Chargify");
-use_ok("WWW::Chargify::Subscription");
-use_ok("WWW::Chargify::Customer");
-use_ok("WWW::Chargify::Product");
+  unless( $ENV{CHARGIFY_SUBDOMAIN} && 
+        $ENV{CHARGIFY_APIKEY}
+      ){
+     note("NEEDED VARIABLES NOT DEFINED. THIS DOES NOT CHECK FOR ALL VARIABLES, THIS NEEDS TO BE FIX. SKIPPING FOR NOW. PLEASE look at the source for the correct ENV VARIABLES");
+     plan skip_all => "Can not run tests without Chargify information.";
+
+  }
+  use_ok("WWW::Chargify");
+  use_ok("WWW::Chargify::Subscription");
+  use_ok("WWW::Chargify::Customer");
+  use_ok("WWW::Chargify::Product");
+}
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  VARIABLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 

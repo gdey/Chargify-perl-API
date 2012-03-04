@@ -7,16 +7,30 @@ use 5.10.0;
 
 use lib './lib';
 
-use Test::More tests => 4;
-use Test::Exception;
-use Data::Dumper;
-use Log::Log4perl;
-no warnings;
 my $chargify;
 my @products;
 my $cust;
 my $loglevel = eval{ eval("\$Log::Log4perl::$ENV{DEBUG_LEVEL}") } || $Log::Log4perl::DEBUG;
 
+BEGIN {
+  use Test::More;
+  use Test::Exception;
+  use Data::Dumper;
+  use Log::Log4perl;
+  no warnings;
+  unless( $ENV{CHARGIFY_SUBDOMAIN} && 
+        $ENV{CHARGIFY_APIKEY}
+      ){
+     note("NEEDED VARIABLES NOT DEFINED. THIS DOES NOT CHECK FOR ALL VARIABLES, THIS NEEDS TO BE FIX. SKIPPING FOR NOW. PLEASE look at the source for the correct ENV VARIABLES");
+     plan skip_all => "Can not run tests without Chargify information.";
+
+  }
+  use_ok("WWW::Chargify");
+  use_ok("WWW::Chargify::CreditCard");
+  use_ok("WWW::Chargify::Subscription");
+  use_ok("WWW::Chargify::Customer");
+  use_ok("WWW::Chargify::Product");
+}
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 sub debug_print($);
@@ -24,8 +38,8 @@ sub debug_print($);
 use_ok("WWW::Chargify::CreditCard");
 
 
-$chargify = WWW::Chargify->new(  subdomain  => $ENV{SUBDOMAIN2},
-                                 apiKey     => $ENV{APIKEY}
+$chargify = WWW::Chargify->new(  subdomain  => $ENV{CHARGIFY_SUBDOMAIN2},
+                                 apiKey     => $ENV{CHARGIFY_APIKEY}
                              );
 $chargify->logger->level( $loglevel );
 

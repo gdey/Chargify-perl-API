@@ -27,11 +27,23 @@ my $loglevel = eval{ eval("\$Log::Log4perl::$ENV{DEBUG_LEVEL}") } ||
 no warnings;
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-use_ok("WWW::Chargify");
-use_ok("WWW::Chargify::Subscription");
-use_ok("WWW::Chargify::Customer");
-use_ok("WWW::Chargify::Product");
-use_ok("WWW::Chargify::Migration");
+BEGIN{
+  use Test::More;
+  use Test::Exception;
+
+  unless( $ENV{CHARGIFY_SUBDOMAIN} && 
+        $ENV{CHARGIFY_APIKEY}
+      ){
+     note("NEEDED VARIABLES NOT DEFINED. THIS DOES NOT CHECK FOR ALL VARIABLES, THIS NEEDS TO BE FIX. SKIPPING FOR NOW. PLEASE look at the source for the correct ENV VARIABLES");
+     plan skip_all => "Can not run tests without Chargify information.";
+
+  }
+  use_ok("WWW::Chargify");
+  use_ok("WWW::Chargify::Subscription");
+  use_ok("WWW::Chargify::Customer");
+  use_ok("WWW::Chargify::Product");
+  use_ok("WWW::Chargify::Migration");
+}
 
 
 
