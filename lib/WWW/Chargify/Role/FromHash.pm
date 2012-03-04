@@ -87,7 +87,7 @@ sub _to_hash{
 
      my $reader = $attribute->get_read_method;
      my $value = $self->$reader;
-     next unless $value;
+     next unless defined $value;
 
      my $key = $attribute->has_APIAttributeName 
                ?  $attribute->APIAttributeName

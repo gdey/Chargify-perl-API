@@ -49,7 +49,12 @@ use WWW::Chargify::Migration;
    has created_at              => ( is => 'rw', isa => 'DateTime', coerce => 1, );
    has updated_at              => ( is => 'rw', isa => 'DateTime', coerce => 1, );
    has canceled_at             => ( is => 'rw', isa => 'DateTime', coerce => 1, );
-   has delayed_cancel_at       => ( is => 'rw', isa => 'DateTime', coerce => 1, );
+   has delayed_cancel_at       => ( is => 'rw', isa => 'DateTime', coerce => 1, 
+                                    predicate => 'has_delayed_cancel_at',
+                                    traits         => [qw/Chargify::APIAttribute/],
+                                    isAPIUpdatable => 0,
+                                  );
+
    has customer                => ( is => 'rw', 
                                     isa => 'WWW::Chargify::Customer' , 
                                   );
@@ -367,6 +372,19 @@ use WWW::Chargify::Migration;
       my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => $hash );
       return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
    }
+
+   sub reactivate {
+     my ($self, %args) = @_;
+     
+     return if $self->state eq 'active' and !$self->cancel_at_end_of_period;
+     my $http = $self->http;
+     my $body = {};
+     $body->{include_trial} = !!$args{include_trial} if exists $args{include_trial};
+     my ($object, $response) = $http->put( $self->_resource_key, $self->id, reactivate => $body );
+     return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
+   }
+
+
 
 
    # curl -u $ENV{APIKEY}:x -X PUT "https://$ENV{SUBDOMAIN}.chargify.com/subscriptioF "subscription[id]=1301020" -F "subscription[vault_token]=5436078" -F "subscription[next_billing_at]=2012-02-20T22:40:58

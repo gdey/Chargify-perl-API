@@ -91,7 +91,7 @@ sub post {
    my $path = join '/', @path;
    debug('Path: '.$path.'Body: '.Dumper($body) );
 
-   $self->make_request( POST => $path, $options // {}, $body // "{}");
+   $self->make_request( POST => $path, $options // {}, $body // {});
 }
 sub put {
    my ($self, @path) = @_;
@@ -99,7 +99,7 @@ sub put {
    my $options = pop @path if ref($path[-1]) eq 'HASH';
    my $path = join '/', grep { defined } @path;
    debug('Path: '.$path.'Body: '.Dumper($body) );
-   $self->make_request( PUT => $path, $options // {}, $body // "{}");
+   $self->make_request( PUT => $path, $options // {}, $body // {});
 }
 sub get {
 
@@ -140,8 +140,14 @@ sub check_response_code {
   $error_type = 'AuthorizationError'    if $code eq '403';
   $error_type = 'ServerError'           if $code eq '500';
   $error_type = 'DownForMaintenance'    if $code eq '503';
+  my $content = $response->content;
   if( $response->content !~ /^\s*$/ ) { 
-      $errors = JSON::decode_json( $response->content )->{errors};
+      my $obj = JSON::decode_json( $response->content);
+      if (ref($obj) eq 'HASH'){
+        $errors =$obj->{errors};
+      } elsif ( ref($obj) eq 'ARRAY' ){
+        $errors = $obj->[1];
+      };
   }
   die WWW::Chargify::Exception->new( 
                                         response => $response,
@@ -182,6 +188,7 @@ sub make_request {
        return wantarray? ($value,$response) : $value;
    }
 
+   debug("Body: " . Dumper($content_body)) if $content_body;
    #TODO:  Need to handle errors here.
    $self->check_response_code($response, $content_body);
    return wantarray? (undef,$response) : undef;
