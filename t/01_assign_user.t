@@ -62,7 +62,7 @@ $account = $chargify->find_customer_by_reference( $ENV{TESTUSER_COMPONENT} );
 foreach my $i ( @subscriptions[0..0] ) {
     last if $i eq "";
     $prod = WWW::Chargify::Product->find_by
-            ( $chargify->http, 
+            ( http => $chargify->http, 
               handle => $i
             );
     next unless $prod;

@@ -132,13 +132,15 @@ package WWW::Chargify::Customer;
           coupon_code        => $args{coupon_code},
           payment_profile_id => $args{payment_profile_id},
        );
-       my $newsubscription = 
-               WWW::Chargify::Subscription->add_subscription(
-                  http => $self->http,
-                  product => $product,
-                  customer => $self,
-                  map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash
-               );
+       my %usehash = map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash;
+
+       my $newsubscription = WWW::Chargify::Subscription->add_subscription
+                                                          (              
+                                                           http => $self->http,
+                                                           product => $product,
+                                                           customer => $self,
+                                                           %usehash 
+                                                          );
        my $chash = $newsubscription->customer->_to_hash;
        $self->_save( hash => $chash );
        return $self;

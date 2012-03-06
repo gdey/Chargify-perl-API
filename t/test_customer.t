@@ -113,6 +113,8 @@ $cust = $chargify->find_customer_by_reference( $userid );
 is( $cust->address, $tmpaddress, "Got the modified address");
 
 
+done_testing();
+
 sub gautam_play {
 
     print 'Running Gautam\'s games';
