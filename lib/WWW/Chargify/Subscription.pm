@@ -410,7 +410,7 @@ use WWW::Chargify::Migration;
                $class->customer_vault_token( $class->customer->id );
            }
 
-           if( !defined $class->credit_card->id ) {
+           if( $class->has_credit_card && !defined $class->credit_card->id ) {
 
                $class->credit_card_attributes( 
                                               $class->credit_card
