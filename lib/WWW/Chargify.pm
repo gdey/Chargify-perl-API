@@ -7,6 +7,7 @@ use Data::Dumper;
 use Moose;
 use WWW::Chargify::Product;
 use WWW::Chargify::Config;
+use WWW::Chargify::Customer;
 use namespace::autoclean;
 with 'WWW::Chargify::Role::Config';
 with 'WWW::Chargify::Role::HTTP';
