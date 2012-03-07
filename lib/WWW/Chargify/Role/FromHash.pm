@@ -48,7 +48,7 @@ sub _apiName_to_attributeName{
    my ($self, $api_name) = @_;
    confess "api_name is required." unless defined $api_name;
 
-   return $api_hash{$api_name} if %api_hash;
+   return $api_hash{$api_name} if $api_hash{$api_name};
    my $meta = $self->meta;
    foreach my $attribute ( $meta->get_all_attributes ) { 
 
