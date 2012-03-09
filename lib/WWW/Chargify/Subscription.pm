@@ -83,6 +83,11 @@ use WWW::Chargify::Migration;
                                     traits         => [qw/Chargify::APIAttribute/],
                                     isAPIUpdatable => 1,
                                   );
+   has customer_id             => ( is             => 'rw', 
+                                    isa            => 'Int' , 
+                                    traits         => [qw/Chargify::APIAttribute/],
+                                    isAPIUpdatable => 1,
+                                  );
    has credit_card_attributes  => ( is             => 'rw',
                                        isa            => 'CreditCardAttributeSet',
                                        traits         => [qw/Chargify::APIAttribute/],
@@ -372,6 +377,37 @@ use WWW::Chargify::Migration;
       my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => $hash );
       return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
    }
+   
+   # 
+   # handles the flags/ logic of adding a new credit card
+   sub update_creditcard {
+     my ($self, %args) =  validated_hash
+                          (\@_,
+                           credit_card => { isa => 'WWW::Chargify::CreditCard'}
+                          );
+     my @remove =  qw(cancel_at_end_of_period state customer_id id product_handle );
+     my @toremove = grep { $b=$_;grep { $b->name eq $_ } @remove } $self->meta->get_all_attributes;
+     my %remove = map { $_->name => $_->isAPIUpdatable } @toremove;
+     #delete $self->{cancel_at_end_of_period};
+     #delete $self->{state};
+     #delete $self->{customer_id};
+     # Deactivate certain parameters
+     
+     $_->isAPIUpdatable(0) foreach (@toremove);
+     
+     # delete the CVV ( possible bug in Chargify )
+     delete $args{credit_card}->{cvv};
+
+     $self->credit_card( $args{credit_card} );
+     eval { 
+         $self->save();
+     };
+     
+     # Reset the parameters to their normal readonly state
+     $_->isAPIUpdatable( $remove{$_->name} ) foreach ( @toremove );
+     die $@ if( $@ );
+   }
+
 
    sub reactivate {
      my ($self, %args) = @_;
@@ -407,7 +443,8 @@ use WWW::Chargify::Migration;
            } 
            # Determine if there isn't a change
            if( defined $class->customer->id ) { 
-               $class->customer_vault_token( $class->customer->id );
+               #$class->customer_vault_token( $class->customer->id );
+               $class->customer_id( $class->customer->id );
            }
 
            if( $class->has_credit_card && !defined $class->credit_card->id ) {
