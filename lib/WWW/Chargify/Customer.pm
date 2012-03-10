@@ -149,9 +149,8 @@ package WWW::Chargify::Customer;
 
    sub all_credit_cards {
        my $self = shift;
-       return map { $_->credit_card } grep {
-          defined $_->has_credit_card
-       } $self->subscriptions
+       return map { $_->credit_card } 
+             grep { $_->has_credit_card } $self->subscriptions
    }
    sub credit_cards {
        my $self = shift;
