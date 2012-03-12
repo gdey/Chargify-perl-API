@@ -48,6 +48,7 @@ has id => (
         is => 'ro', 
         isa => 'Num',
         predicate => 'has_id',
+        clearer => 'clear_id'
 );
 
 

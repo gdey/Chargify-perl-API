@@ -362,19 +362,16 @@ use WWW::Chargify::Migration;
       my $include_initial_charge = $args{include_initial_charge} || 0;
       my $preview = $args{preview}  || 0;
 
-      my $http = $self->http;
-      my $hash = {
-            product_id    => $to_product->id,
-            include_trial => $include_trial,
-            include_initial_charge => $include_initial_charge
-      };
+      my $http = $self->http; 
+      my $hash = { product_handle    => $to_product->handle, };
+      $hash->{ include_trial } = 1 if $include_trial;
+      $hash->{ include_initial_charge} = 1 if $include_initial_charge;
 
       if( $preview ){
-         my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => 'preview.json', $hash );
+         my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => 'preview.json', { migration => $hash } );
          return $object;  
       }
-
-      my ($object, $response) = $http->post( $self->_resource_key, $self->id, migrations => $hash );
+      my ($object, $response) = $http->post( $self->_resource_key, $self->id, 'migrations.json' => { migration => $hash } );
       return $self->_from_hash( http => $http, config => $http->config, hash => $object->{$self->_hash_key} );  
    }
    
