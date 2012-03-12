@@ -2,24 +2,37 @@
 
 use strict;
 use Moose;
-use Test::Exception;
 use Date::Format;
 use Log::Log4perl;
 use List::MoreUtils;
 use List::Util qw(first);
-use Test::More;
 use UNIVERSAL;
 my $chargify;
 my @products;
 my $cust;
 
+BEGIN{
+use Test::More;
+use Test::Exception;
+
+unless( $ENV{CHARGIFY_SUBDOMAIN} && 
+        $ENV{CHARGIFY_APIKEY}    &&
+        $ENV{CHARGIFY_TESTUSER}  &&
+        $ENV{CHARGIFY_TESTSUBID}
+      ){
+  note("We need the CHARGIFY_SUBDOMAIN, CHARGIFY_APIKEY, CHARGIFY_TESTUSER, and CHARGIFY_TESTSUBID Environmental variables to be set.");
+  plan skip_all => "Can not run tests without Chargify information.";
+
+  }
+  use_ok("WWW::Chargify");
+  use_ok("WWW::Chargify::Subscription");
+  use_ok("WWW::Chargify::Customer");
+  use_ok("WWW::Chargify::Product");
+
+}
+
 no warnings;
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-use_ok("WWW::Chargify");
-use_ok("WWW::Chargify::Subscription");
-use_ok("WWW::Chargify::Customer");
-use_ok("WWW::Chargify::Product");
 
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  VARIABLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
