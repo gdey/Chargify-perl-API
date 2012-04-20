@@ -1,0 +1,3 @@
+[submodule "vendor/Test-Class"]
+	path = vendor/Test-Class
+	url = https://github.com/adrianh/test-class.git
