@@ -54,10 +54,9 @@ sub _build_user_agent {
 sub set_body {
 
    my ($self, %args ) = @_;
-   use Data::Dumper;
    my $request = $args{request};
    my $body = $args{body};
-   local $SIG{__WARN__} = sub {print "Got warning for the following body: ".Dumper($body)."\n"}; # set it to a noop.
+   local $SIG{__WARN__} = sub { debug( "Got warning for the following body: ".Dumper($body)."\n") }; # set it to a noop.
    $request->headers->content_type('application/json; charset=utf-8');
    return unless $body;
    my $json = encode_json $body;
@@ -69,7 +68,7 @@ sub filter_string {
    my ($self, $hash_ref) = @_;
 
    my @filter = ();
-   foreach my $key ( keys %{$hash_ref} ){
+   foreach my $key ( sort keys %{$hash_ref} ){
       my $value = $hash_ref->{$key};
       unless ( ref($value) )  {
          push @filter, $key.'='.$value;
@@ -127,34 +126,51 @@ sub delete {
 
 sub check_response_code {
 
-  my ($self, $response, $sent_body) = @_;
+  my ($self, $response, $sent_body, $request) = @_;
   $sent_body = '<<EMPTY BODY>>' unless defined $sent_body;
   my $errors;
   my $code = $response->code;
+  my $content = $response->content;
 
   my $error_type = 'UNKNOWN'; 
 
-  $error_type = 'NotFoundError'         if $code eq '404';
-  $error_type = 'UnprocessableEntity: ' if $code eq '422';
   $error_type = 'AuthenticationError'   if $code eq '401';
   $error_type = 'AuthorizationError'    if $code eq '403';
+  $error_type = 'NotFoundError'         if $code eq '404';
+  $error_type = 'UnprocessableEntity: ' if $code eq '422';
   $error_type = 'ServerError'           if $code eq '500';
   $error_type = 'DownForMaintenance'    if $code eq '503';
-  my $content = $response->content;
-  if( $response->content !~ /^\s*$/ ) { 
-      my $obj = JSON::decode_json( $response->content);
+  if( $content !~ /^\s*$/ ) { 
+    try {
+      my $obj = JSON::decode_json( $content );
       if (ref($obj) eq 'HASH'){
         $errors =$obj->{errors};
       } elsif ( ref($obj) eq 'ARRAY' ){
         $errors = $obj->[1];
       };
+    } catch {
+       if( $code eq '401' or $code eq '403' ){
+          $errors = [ (($code eq '401')? 'Authorization Error:' : 'Authentication Error' ) . 'Are the API keys for chargify correct?' ];
+       } elsif( $code eq '404' ){
+          $errors = [ 'NotFoundError: Chargify API seems to have changed. ' ];
+       } elsif( $code eq '422' ){
+          $errors = [ 'UnprocessableEntity: Chargify API seems to have changed. ' ];
+       } elsif( $code eq '500' ){
+          $errors = [ 'ServerError: Chargify API is returning a server error. ' ];
+       } elsif( $code eq '503' ){
+          $errors = [ 'DownForMaintence: Chargify is down for maintance, try the call at a later time.' ];
+       } else {
+          $errors = [ "UNKNOWN( $code ) : Chargify API is returning an unknown error. " ];
+       }
+    };
   }
-  die WWW::Chargify::Exception->new( 
+  die WWW::Chargify::Exception->new(    
+                                        request  => $request,
                                         response => $response,
                                         code     => $code,
                                         type     => $error_type,
                                         errors   => $errors,
-                                       )
+                                   )
 }
 
 sub make_request {
@@ -190,7 +206,7 @@ sub make_request {
 
    debug("Body: " . Dumper($content_body)) if $content_body;
    #TODO:  Need to handle errors here.
-   $self->check_response_code($response, $content_body);
+   $self->check_response_code($response, $content_body, $request);
    return wantarray? (undef,$response) : undef;
 } 
 

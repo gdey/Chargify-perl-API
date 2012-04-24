@@ -7,18 +7,22 @@ use Moose;
 use JSON ();
 use overload 
     '""' => \&to_s,
+    'bool' => \&to_bool,
     'ne' => sub { return ! str_compare(@_)},
     'eq' => \&str_compare;
 
+has 'request'    => ( is => 'ro', isa => 'HTTP::Request|Undef'  );
 has 'response'   => ( is => 'ro', isa => 'HTTP::Response'       );
 has 'errors'     => ( is => 'rw', isa => 'ArrayRef[Str]|Undef'  );
 has 'code'       => ( is => 'rw', isa => 'Int'                  );
 has 'type'       => ( is => 'rw', isa => 'Str'                  ); 
 sub status_code {
-    goto &code;
+    my ($self) = @_;
+    $self->code;
 }
 ##
 #
+sub to_bool { return !!0; }
 sub to_s {
     my ($self) = @_;
     my $errors;
