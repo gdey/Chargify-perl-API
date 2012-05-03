@@ -41,7 +41,7 @@ log4perl.appender.Logfile = Log::Log4perl::Appender::File
 log4perl.PatternLayout.cspec.U = sub { return "\t" }
 
 log4perl.appender.BasicPrintScreen  = Log::Log4perl::Appender::Screen
-log4perl.appender.BasicPrintScreen.stderr = 0
+log4perl.appender.BasicPrintScreen.stderr = 1
 log4perl.appender.BasicPrintScreen.layout = Log::Log4perl::Layout::PatternLayout
 log4perl.appender.BasicPrintScreen.ConversionPattern = %n
 log4perl.logger.main = ERROR

@@ -2,7 +2,7 @@ package WWW::Chargify::Tests::HTTP;
 
 use v5.10.0;
 use strict;
-use base qw( WWW::Chargify::Tests::Base );
+use base qw( Test::Class );
 use Test::More;
 use WWW::Chargify::HTTP;
 use Data::Dumper;
@@ -34,7 +34,7 @@ sub test_filter_string : Test(11) {
           'Scalar refs are ignored.',
           { a => \'b' }
           ],
-     'c[]=1&c[]=2&c[]=3&a=b' => [
+     'a=b&c[]=1&c[]=2&c[]=3' => [
              'One variable and an array', 
              { a => 'b', c => [ 1, 2, 3 ] },
              { c => [ 1, 2, 3 ], a => 'b' } 
