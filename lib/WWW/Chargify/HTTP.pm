@@ -1,10 +1,6 @@
 package WWW::Chargify::HTTP;
 use v5.10.0;
 
-BEGIN {
-   $WWW::Chargify::HTTP::VERSION = v0.0.7;
-}
-
 use Moose;
 use Moose::Util::TypeConstraints;
 use MooseX::Types::LWP::UserAgent qw(UserAgent);
@@ -52,7 +48,7 @@ has extra_headers => (
 
 sub _build_user_agent {
    my $self = shift;
-   my $ua = LWP::UserAgent->new( agent => 'chargify-perl/'.$WWW::Chargify::HTTP::VERSION );
+   my $ua = LWP::UserAgent->new( agent => 'chargify-perl/0.0.8');
    return $ua;
 }
 
@@ -62,7 +58,9 @@ sub set_body {
    my ($self, %args ) = @_;
    my $request = $args{request};
    my $body = $args{body};
-   local $SIG{__WARN__} = sub { debug( "Got warning for the following body: ".Dumper($body)."\n") }; # set it to a noop.
+   local $SIG{__WARN__} = sub { ;
+      #debug( "Got warning for the following body: ".Dumper($body)."\n")
+   }; # set it to a noop.
    $request->headers->content_type('application/json; charset=utf-8');
    return unless $body;
    my $json = encode_json $body;
