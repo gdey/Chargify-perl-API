@@ -1,6 +1,10 @@
 package WWW::Chargify::HTTP;
 use v5.10.0;
 
+BEGIN {
+   $WWW::Chargify::HTTP::VERSION = v0.0.7;
+}
+
 use Moose;
 use Moose::Util::TypeConstraints;
 use MooseX::Types::LWP::UserAgent qw(UserAgent);
@@ -11,6 +15,8 @@ use LWP::UserAgent ();
 use Carp qw(confess);
 use Data::Dumper;
 use namespace::autoclean;
+use Try::Tiny;
+
 with 'WWW::Chargify::Role::SimpleLogger';
 
 enum HTTP_METHODS => [qw( HEAD POST PUT GET DELETE )];
@@ -46,7 +52,7 @@ has extra_headers => (
 
 sub _build_user_agent {
    my $self = shift;
-   my $ua = LWP::UserAgent->new( agent => 'chargify-perl/0.0.1' );
+   my $ua = LWP::UserAgent->new( agent => 'chargify-perl/'.$WWW::Chargify::HTTP::VERSION );
    return $ua;
 }
 
