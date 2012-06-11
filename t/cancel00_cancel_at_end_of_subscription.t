@@ -33,9 +33,8 @@ sub chargify {
 
 sub test_cancel_at_end_subscription {
 
-   my $account = chargify->find_customer_by_reference( $ENV{CHARGIFY_TESTUSER } );
-   my $sub = first {; $_->id == $ENV{CHARGIFY_TESTSUBID} } 
-              $account->subscriptions;
+   my $account = chargify->find_customer_by_reference( $ENV{CHARGIFY_TESTUSER} );
+   my $sub = first {$_->state eq "active" } $account->subscriptions;
    ok($sub,"Found subscription");
    plan skip_all => "Subscription[ $ENV{CHARGIFY_TESTSUBID} ] for given user $ENV{CHARGIFY_TESTUSER}" unless $sub;
 

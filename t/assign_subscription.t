@@ -6,20 +6,21 @@ use Test::Exception;
 use Date::Format;
 use Log::Log4perl;
 use List::Util qw(first);
-use Test::More;
 use Date::Manip;
 use DateTime::Format::DateManip;
+use Test::More;
+use Test::Exception;
+
+
 my $chargify;
 my @products;
 my $cust;
+
 
 no warnings;
 #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-  CODE SAMPLES  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 BEGIN{
-  use Test::More;
-  use Test::Exception;
-
   unless( $ENV{CHARGIFY_SUBDOMAIN} && 
         $ENV{CHARGIFY_APIKEY}
       ){
@@ -69,14 +70,14 @@ lives_ok {
     #
     $cc   = (first {1}  $account->subscriptions)->credit_card;
     $product = first { $_->handle eq $ENV{TEST_MIGRATE_USAGE_PRODUCT}}  $chargify->products;
-    print "USING  $start_date";
+    $chargify->logger->info( "USING  $start_date" );
     $account->add_subscription
               (
                product            => $product,
                next_billing_at    => $start_date,
                creditcard         => $cc, 
               );
-} ,"Able to assign a product correctly";
+} "Able to assign a product correctly";
 
 
 done_testing();
