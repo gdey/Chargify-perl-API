@@ -312,6 +312,7 @@ use WWW::Chargify::Migration;
        my $coupon_code     = $args{coupon_code};
        my $next_billing_at = $args{next_billing_at};
        my $vat_number      = $args{vat_number};
+       my $cancellation_message = $args{cancellation_message};
 
        # We are going to be creating a new subscription for a customer.
        # Now a customer could be new, in which case, we need to get hash for the customer, 
@@ -343,6 +344,7 @@ use WWW::Chargify::Migration;
        $hash{ coupon_code } = $coupon_code if( $coupon_code );
        $hash{next_billing_at} = DateTime::Format::W3CDTF->new->format_datetime($next_billing_at) if $next_billing_at ;
        $hash{vat_number} = $vat_number if $vat_number;
+       $hash{cancellation_message} = $cancellation_message if $cancellation_message;
 
        my ($object, $response) = $http->post ( $class->_resource_key,  { $class->_hash_key => \%hash } );
        my $config = $http->config;

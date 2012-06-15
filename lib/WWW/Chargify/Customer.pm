@@ -126,11 +126,12 @@ package WWW::Chargify::Customer;
        my ($self, %args) = @_;
        my $product = $args{product} || confess "product is requried.";
        my %hash = (
-          creditcard         => $args{creditcard},
-          next_billing_at    => $args{next_billing_at},
-          vat_number         => $args{vat_number},
-          coupon_code        => $args{coupon_code},
-          payment_profile_id => $args{payment_profile_id},
+          creditcard           => $args{creditcard},
+          next_billing_at      => $args{next_billing_at},
+          vat_number           => $args{vat_number},
+          coupon_code          => $args{coupon_code},
+          payment_profile_id   => $args{payment_profile_id},
+          cancellation_message => $args{cancellation_message}
        );
        my %usehash = map { $_ => $hash{$_} } grep { defined $hash{$_} } keys %hash;
 
@@ -143,7 +144,7 @@ package WWW::Chargify::Customer;
                                                           );
        my $chash = $newsubscription->customer->_to_hash;
        $self->_save( hash => $chash );
-       return $self;
+       return $newsubscription;
 
    }
 
