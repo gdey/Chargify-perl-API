@@ -49,6 +49,7 @@ has extra_headers => (
 sub _build_user_agent {
    my $self = shift;
    my $ua = LWP::UserAgent->new( agent => 'chargify-perl/0.0.8');
+   $ua->{ssl_opts}->{verify_hostname} = undef;
    return $ua;
 }
 
