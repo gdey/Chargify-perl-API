@@ -324,8 +324,8 @@ use WWW::Chargify::Migration;
 
        if ($customer->has_id) {
          # So we have a customer that already exists in the system! Yay.
-         info( "Customer reference: ".$customer->reference );
-         info( "Customer id: ".$customer->id );
+         debug( "Customer reference: ".$customer->reference );
+         debug( "Customer id: ".$customer->id );
          $customer->has_reference ?
              ( $hash{customer_reference} = $customer->reference )
            : ( $hash{customer_id} = $customer->id );
