@@ -94,7 +94,7 @@ package WWW::Chargify::Customer;
    #method subscriptions {
    sub subscriptions {
 
-      my $self = shift;
+      my ($self,$args) = @_;
 
       my $id = $self->id;
 
@@ -105,16 +105,25 @@ package WWW::Chargify::Customer;
       my $resource_key = $self->_resource_key;
       my $subscription_hash_key = WWW::Chargify::Subscription->_hash_key;
       my $subscription_resource_key = WWW::Chargify::Subscription->_resource_key;
-
-      my ($objects, $response) = $http->get($resource_key,$id,$subscription_resource_key);
-      return sort {
-        $b->id <=> $a->id
-      } map { WWW::Chargify::Subscription->_from_hash( 
-         config => $config, 
-           http => $http, 
-           hash => $_->{$subscription_hash_key}  
-      ) } @{$objects};
-
+      
+      my $MAX_LIMIT = ( defined $args->{per_page} ? $args->{per_page} : 20 );
+      my @retobj;
+      $args->{page} = 1;
+      my ($objects, $response) ;
+      while(1) { 
+          ($objects, $response) = $http->get($resource_key,$id,$subscription_resource_key,$args);
+          my @tmp = sort {
+              $b->id <=> $a->id
+          } map { WWW::Chargify::Subscription->_from_hash( 
+                                                          config => $config, 
+                                                          http => $http, 
+                                                          hash => $_->{$subscription_hash_key}  
+                                                         ) } @{$objects};
+          push @retobj, @tmp;
+          last if( @tmp <  $MAX_LIMIT );
+          $args->{page} ++;
+      }
+      return @retobj;
    }
    sub active_subscriptions {
        my ($self) = @_;
