@@ -28,7 +28,7 @@ package WWW::Chargify::Customer;
    has reference => ( 
           traits => [qw/Chargify::APIAttribute/],
               is => 'rw', 
-             isa => 'Str', 
+             isa => 'Str|Undef', 
        predicate => 'has_reference'
    );
 
